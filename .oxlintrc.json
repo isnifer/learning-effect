@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-control-regex": "off",
+    "no-loss-of-precision": "off",
+    "no-unused-vars": [
+      "warn",
+      {
+        "ignoreRestSiblings": true,
+        "destructuredArrayIgnorePattern": "[iI]gnored",
+        "caughtErrors": "none"
+      }
+    ],
+    "no-useless-escape": "off",
+    "react/display-name": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "react/no-unknown-property": "off"
+  },
+  "env": {
+    "browser": true,
+    "builtin": true,
+    "node": true
+  }
+}
