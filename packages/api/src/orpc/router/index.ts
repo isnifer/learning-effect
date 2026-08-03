@@ -1,6 +1,5 @@
-import { addTodo, listTodos } from './todos'
+import CreateTodoProcedure from '#/server/entrypoints/orpc/CreateTodoProcedure'
 
 export default {
-  listTodos,
-  addTodo,
+  createTodo: CreateTodoProcedure,
 }

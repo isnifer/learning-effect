@@ -13,7 +13,7 @@ const Todo = Schema.Struct({
   id: TodoId,
   title: TodoTitle,
   status: TodoStatus,
-  createdAt: Schema.DateTimeUtcFromMillis,
+  createdAt: Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))),
 })
 
 export type TTodo = typeof Todo.Type

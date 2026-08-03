@@ -20,6 +20,9 @@ importers:
 
   packages/api:
     dependencies:
+      '@effect/platform-browser':
+        specifier: 4.0.0-beta.102
+        version: 4.0.0-beta.102(effect@4.0.0-beta.102)
       '@hookform/resolvers':
         specifier: 5.7.1
         version: 5.7.1(@standard-schema/spec@1.1.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(effect@4.0.0-beta.102)(react-hook-form@7.84.0(react@19.2.8))(zod@3.25.76)
@@ -326,6 +329,11 @@ packages:
   '@effect/language-service@0.87.1':
     resolution: {integrity: sha512-kcljlJmEgqg5mFAM6UShJYJjMqJb3TbHHxrK8Qoubvwugc0aVWpRkbdgQvK5b17puOt3BKXXKOmcV+oQt0oQqQ==}
     hasBin: true
+
+  '@effect/platform-browser@4.0.0-beta.102':
+    resolution: {integrity: sha512-DXXVt+oOpukqI3lEaGvvXQxSobzIy3lAsIQvlpVK+MuYBm1o4FHZrHKbrOFItDUvSR1t0kiTncFPRi01YaJUmA==}
+    peerDependencies:
+      effect: ^4.0.0-beta.102
 
   '@emnapi/core@2.0.0-alpha.3':
     resolution: {integrity: sha512-AZypUeJ/yByuxyS7BlSNRDOMLMlROYtjYdIAuBmJssVz1UJDSeYxLrdizhXCFYhedC5bqd/ASy8EuNXbVVXp9g==}
@@ -4061,6 +4069,11 @@ snapshots:
   '@drizzle-team/brocli@0.10.2': {}
 
   '@effect/language-service@0.87.1': {}
+
+  '@effect/platform-browser@4.0.0-beta.102(effect@4.0.0-beta.102)':
+    dependencies:
+      effect: 4.0.0-beta.102
+      multipasta: 0.2.8
 
   '@emnapi/core@2.0.0-alpha.3':
     dependencies:
