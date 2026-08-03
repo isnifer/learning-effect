@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { check, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { check, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { TodoStatus } from '#/server/domain/entities/Todo'
 
 const todoStatusValues = sql
@@ -19,7 +19,7 @@ export const todos = sqliteTable(
     })
       .notNull()
       .default('TODO'),
-    createdAt: text('created_at').notNull(),
+    createdAt: integer('created_at').notNull(),
   },
   table => [check('todos_status_check', sql`${table.status} in (${todoStatusValues})`)]
 )

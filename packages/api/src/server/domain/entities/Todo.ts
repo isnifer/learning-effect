@@ -13,7 +13,7 @@ const Todo = Schema.Struct({
   id: TodoId,
   title: TodoTitle,
   status: TodoStatus,
-  createdAt: Schema.DateTimeUtc,
+  createdAt: Schema.DateTimeUtcFromMillis,
 })
 
 export type TTodo = typeof Todo.Type

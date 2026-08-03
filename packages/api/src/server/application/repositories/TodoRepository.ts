@@ -14,10 +14,6 @@ export class TodoRepositoryError extends Schema.TaggedErrorClass<TodoRepositoryE
 export default class TodoRepository extends Context.Service<
   TodoRepository,
   {
-    // Сгенерировать UUIDv7
-    // Получить текущее время UTC
-    // Создать Todo со статусом TODO
-    // Сохранить Todo
     readonly create: (input: Pick<TTodo, 'title'>) => Effect.Effect<TTodo, TodoRepositoryError>
   }
 >()('TodoRepository') {}
