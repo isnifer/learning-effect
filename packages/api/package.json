@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "vite dev",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "pnpm build && vite preview",
@@ -45,6 +47,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.0.5",
+    "drizzle-kit": "0.31.10",
     "shadcn": "4.16.1",
     "typescript": "7.0.2",
     "vite": "8.2.0",

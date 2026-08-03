@@ -1,3 +1,17 @@
+# Workspace instructions
+
 Keep pnpm workspace configuration and settings in `pnpm-workspace.yaml`, not `package.json`.
-Use Effect v4 beta from `effect`; import Schema from `effect/Schema` and do not install `@effect/schema`.
+
 Always install dependencies with exact versions. Do not use `^`, `~`, or other version ranges.
+
+Each package under `packages/*` must own its package-specific instructions in an `AGENTS.md` and
+package-specific supporting rules in `.agents/`. Keep only instructions that apply to every package
+in this root file.
+
+## Package instructions
+
+- [`packages/api/AGENTS.md`](packages/api/AGENTS.md)
+
+## Contexts
+
+See [`CONTEXT-MAP.md`](CONTEXT-MAP.md) for the workspace context map.
