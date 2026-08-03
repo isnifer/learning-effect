@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": ["packages/api/worker-configuration.d.ts"],
   "plugins": ["react"],
   "categories": {
     "correctness": "error"
