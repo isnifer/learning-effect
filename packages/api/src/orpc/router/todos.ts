@@ -1,5 +1,10 @@
 import { os } from '@orpc/server'
-import * as z from 'zod'
+import * as Schema from 'effect/Schema'
+
+const EmptyInput = Schema.toStandardSchemaV1(Schema.Struct({}))
+const AddTodoInput = Schema.toStandardSchemaV1(
+  Schema.Struct({ name: Schema.String }),
+)
 
 const todos = [
   { id: 1, name: 'Get groceries' },
@@ -7,12 +12,12 @@ const todos = [
   { id: 3, name: 'Finish the project' },
 ]
 
-export const listTodos = os.input(z.object({})).handler(() => {
+export const listTodos = os.input(EmptyInput).handler(() => {
   return todos
 })
 
 export const addTodo = os
-  .input(z.object({ name: z.string() }))
+  .input(AddTodoInput)
   .handler(({ input }) => {
     const newTodo = { id: todos.length + 1, name: input.name }
     todos.push(newTodo)
