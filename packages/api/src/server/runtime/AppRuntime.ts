@@ -11,4 +11,6 @@ const AppServicesLive = Layer.provide(D1TodoRepository, InfrastructureLive)
 
 const AppRuntime = ManagedRuntime.make(AppServicesLive)
 
+export type AppRunPromise = typeof AppRuntime.runPromise
+
 export default AppRuntime
