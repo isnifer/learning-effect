@@ -15,5 +15,6 @@ export default class TodoRepository extends Context.Service<
   TodoRepository,
   {
     readonly create: (input: Pick<TTodo, 'title'>) => Effect.Effect<TTodo, TodoRepositoryError>
+    readonly getAll: () => Effect.Effect<ReadonlyArray<TTodo>, TodoRepositoryError>
   }
 >()('TodoRepository') {}

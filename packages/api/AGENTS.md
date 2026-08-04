@@ -22,6 +22,7 @@ typing.
 ## Package rules
 
 - [Reuse domain literal schemas across outer layers](.agents/rules/domain-literal-schemas.md)
+- [Name oRPC routers by entity and repository operation](.agents/rules/orpc-router-naming.md)
 
 ## Architecture
 

@@ -1,5 +1,5 @@
-import CreateTodoProcedure from '#/server/entrypoints/orpc/CreateTodoProcedure'
+import TodoRouter from './TodoRouter'
 
 export default {
-  createTodo: CreateTodoProcedure,
+  todo: TodoRouter,
 }

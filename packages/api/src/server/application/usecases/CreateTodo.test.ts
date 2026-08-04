@@ -3,6 +3,7 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import Todo from '#/server/domain/entities/Todo'
+import TodoRepositoryStub from '../repositories/testing/TodoRepositoryStub'
 import TodoRepository, { TodoRepositoryError } from '../repositories/TodoRepository'
 import CreateTodo from './CreateTodo'
 
@@ -15,6 +16,7 @@ describe('CreateTodo', () => {
   })
 
   const TestTodoRepository = Layer.succeed(TodoRepository)({
+    ...TodoRepositoryStub,
     create: input =>
       Effect.sync(() => {
         expect(input).toStrictEqual({ title: expectedTodo.title })
@@ -41,6 +43,7 @@ describe('CreateTodo', () => {
   })
 
   const FailingTodoRepository = Layer.succeed(TodoRepository)({
+    ...TodoRepositoryStub,
     create: () => Effect.fail(repositoryError),
   })
 

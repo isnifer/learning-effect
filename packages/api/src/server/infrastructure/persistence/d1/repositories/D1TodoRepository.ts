@@ -43,6 +43,16 @@ const D1TodoRepository = Layer.effect(TodoRepository)(
             })
           )
         ),
+      getAll: () =>
+        Effect.tryPromise(() => db.select().from(todos).all()).pipe(
+          Effect.flatMap(Schema.decodeEffect(Schema.Array(Todo))),
+          Effect.mapError(cause =>
+            TodoRepositoryError.make({
+              operation: 'getAll',
+              cause,
+            })
+          )
+        ),
     }
   })
 )

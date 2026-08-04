@@ -10,55 +10,59 @@ import TodoRepository, {
 } from '#/server/application/repositories/TodoRepository'
 import Todo from '#/server/domain/entities/Todo'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
-import CreateTodoProcedure from './CreateTodoProcedure'
+import GetTodosProcedure from './GetTodosProcedure'
 
-describe('CreateTodoProcedure', () => {
-  const expectedTodo = Schema.decodeUnknownSync(Todo)({
-    id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
-    title: 'Test Todo',
-    status: 'TODO',
-    createdAt: 1785835769172,
-  })
+describe('GetTodosProcedure', () => {
+  const expectedTodos = Schema.decodeUnknownSync(Schema.Array(Todo))([
+    {
+      id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
+      title: 'First Todo',
+      status: 'TODO',
+      createdAt: 1785835769172,
+    },
+    {
+      id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2b',
+      title: 'Second Todo',
+      status: 'IN_PROGRESS',
+      createdAt: 1785835769173,
+    },
+  ])
 
-  const callCreateTodo = (runPromise: AppRunPromise) =>
-    call(
-      CreateTodoProcedure,
-      { title: expectedTodo.title },
-      {
-        context: { runPromise },
-      }
-    )
+  const callGetTodos = (runPromise: AppRunPromise) =>
+    call(GetTodosProcedure, undefined, {
+      context: { runPromise },
+    })
 
   const SucceedingTodoRepository = Layer.succeed(TodoRepository)({
     ...TodoRepositoryStub,
-    create: () => Effect.succeed(expectedTodo),
+    getAll: () => Effect.succeed(expectedTodos),
   })
 
   const SuccessRuntime = ManagedRuntime.make(SucceedingTodoRepository)
 
   describe('when the repository succeeds', () => {
-    it('create: returns the created Todo', async () => {
-      const result = await callCreateTodo(SuccessRuntime.runPromise)
+    it('getAll: returns Todos', async () => {
+      const result = await callGetTodos(SuccessRuntime.runPromise)
 
-      expect(result).toBe(expectedTodo)
+      expect(result).toBe(expectedTodos)
     })
   })
 
   const repositoryError = TodoRepositoryError.make({
-    operation: 'create',
+    operation: 'getAll',
     cause: new Error('Repository unavailable'),
   })
 
   const FailingTodoRepository = Layer.succeed(TodoRepository)({
     ...TodoRepositoryStub,
-    create: () => Effect.fail(repositoryError),
+    getAll: () => Effect.fail(repositoryError),
   })
 
   const FailureRuntime = ManagedRuntime.make(FailingTodoRepository)
 
   describe('when the repository fails', () => {
-    it('create: maps TodoRepositoryError to INTERNAL_SERVER_ERROR', async () => {
-      const error = await callCreateTodo(FailureRuntime.runPromise).catch(cause => cause)
+    it('getAll: maps TodoRepositoryError to INTERNAL_SERVER_ERROR', async () => {
+      const error = await callGetTodos(FailureRuntime.runPromise).catch(cause => cause)
 
       if (!(error instanceof ORPCError)) {
         throw error

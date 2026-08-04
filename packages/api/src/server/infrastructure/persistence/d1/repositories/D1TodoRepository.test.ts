@@ -24,5 +24,17 @@ describe('D1TodoRepository', () => {
         expect(createdTodo.title).toEqual('Test')
       })
     )
+
+    it.effect('getAll: returns persisted Todos', () =>
+      Effect.gen(function* () {
+        const todoRepository = yield* TodoRepository
+
+        const todoTitle = yield* Schema.decodeEffect(TodoTitle)('Listed Todo')
+        const createdTodo = yield* todoRepository.create({ title: todoTitle })
+        const todos = yield* todoRepository.getAll()
+
+        expect(todos).toContainEqual(createdTodo)
+      })
+    )
   })
 })
