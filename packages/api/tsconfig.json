@@ -10,9 +10,10 @@
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": [
-        "./worker-configuration.d.ts",
-        "node",
-        "vite/client"
+      "./worker-configuration.d.ts",
+      "@cloudflare/vitest-pool-workers/types",
+      "node",
+      "vite/client"
     ],
     "plugins": [{ "name": "@effect/language-service" }],
 

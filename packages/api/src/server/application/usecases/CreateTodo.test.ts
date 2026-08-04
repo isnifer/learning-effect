@@ -6,7 +6,7 @@ import Todo from '#/server/domain/entities/Todo'
 import TodoRepository from '../repositories/TodoRepository'
 import CreateTodo from './CreateTodo'
 
-describe('application/usecases/CreateTodo', () => {
+describe('CreateTodo', () => {
   const expectedTodo = Schema.decodeUnknownSync(Todo)({
     id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
     title: 'Test Todo',
