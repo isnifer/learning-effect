@@ -10,9 +10,9 @@ For a module with one primary export, use the same PascalCase name for the file 
 export. Keep supporting schemas and types local until another module needs them. Export them by name
 only when an external consumer appears.
 
-Drizzle schema modules are an exception to the PascalCase default-export convention. Name each table
-module after its lowercase plural database table, use a named export with the same name, and re-export
-all tables from `src/server/infrastructure/persistence/d1/schema/index.ts`.
+Drizzle SQLite schema modules are an exception to the PascalCase default-export convention. Name each
+table module after its lowercase plural database table, use a named export with the same name, and
+re-export all tables from `src/server/infrastructure/persistence/sqlite/schema/index.ts`.
 
 Prefix TypeScript type aliases derived from Effect schemas with `T`, such as `TTicket` and
 `TCreateTicketInput`. Keep runtime schema names unprefixed. Use `Schema.brand` when values with the same
@@ -33,3 +33,4 @@ typing.
 
 - [Semantic repositories and orchestration use cases](../../docs/adr/0001-semantic-repositories-and-orchestration-use-cases.md)
 - [Order tickets by workflow group and UUIDv7](../../docs/adr/0002-order-tickets-by-workflow-group-and-uuidv7.md)
+- [Use better-sqlite3 for desktop persistence](../../docs/adr/0003-use-better-sqlite3-for-desktop-persistence.md)

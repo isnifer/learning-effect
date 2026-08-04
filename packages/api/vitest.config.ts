@@ -19,6 +19,8 @@ export default defineConfig({
     }),
   ],
   test: {
+    include: ['src/**/*.test.ts'],
+    exclude: ['src/server/infrastructure/persistence/better-sqlite3/**/*.test.ts'],
     setupFiles: ['./test/applyD1Migrations.ts'],
   },
 })

@@ -10,7 +10,7 @@ import TicketRepository, {
 } from '#/server/application/repositories/TicketRepository'
 import Ticket, { TicketStatus, type TTicket } from '#/shared/contracts/Ticket'
 import { tickets } from '../../sqlite/schema'
-import D1Client from '../client/D1Client'
+import BetterSqlite3Client from '../client/BetterSqlite3Client'
 
 const ticketStatusGroup = {
   IN_PROGRESS: 'ACTIVE',
@@ -25,10 +25,10 @@ const completedTicketStatuses = TicketStatus.literals.filter(
   status => ticketStatusGroup[status] === 'COMPLETED'
 )
 
-const D1TicketRepository = Layer.effect(TicketRepository)(
+const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
   Effect.gen(function* () {
     const crypto = yield* Crypto.Crypto
-    const db = yield* D1Client
+    const db = yield* BetterSqlite3Client
 
     return {
       create: input =>
@@ -36,7 +36,7 @@ const D1TicketRepository = Layer.effect(TicketRepository)(
           const id = yield* crypto.randomUUIDv7
           const createdAt = yield* Clock.currentTimeMillis
 
-          const ticketItem = yield* Effect.tryPromise(() =>
+          const ticketItem = yield* Effect.try(() =>
             db
               .insert(tickets)
               .values({
@@ -59,7 +59,7 @@ const D1TicketRepository = Layer.effect(TicketRepository)(
           )
         ),
       getAll: () =>
-        Effect.tryPromise(() =>
+        Effect.try(() =>
           db
             .select()
             .from(tickets)
@@ -80,7 +80,7 @@ const D1TicketRepository = Layer.effect(TicketRepository)(
         ),
       updateStatus: input =>
         Effect.gen(function* () {
-          const ticketItem = yield* Effect.tryPromise(() =>
+          const ticketItem = yield* Effect.try(() =>
             db
               .update(tickets)
               .set({ status: input.status })
@@ -111,7 +111,7 @@ const D1TicketRepository = Layer.effect(TicketRepository)(
         }),
       updateTitle: input =>
         Effect.gen(function* () {
-          const ticketItem = yield* Effect.tryPromise(() =>
+          const ticketItem = yield* Effect.try(() =>
             db
               .update(tickets)
               .set({ title: input.title })
@@ -144,4 +144,4 @@ const D1TicketRepository = Layer.effect(TicketRepository)(
   })
 )
 
-export default D1TicketRepository
+export default BetterSqlite3TicketRepository

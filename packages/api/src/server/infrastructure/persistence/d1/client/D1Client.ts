@@ -1,7 +1,7 @@
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1'
 import * as Context from 'effect/Context'
 import * as Layer from 'effect/Layer'
-import * as schema from '../schema'
+import * as schema from '../../sqlite/schema'
 
 type TD1Client = DrizzleD1Database<typeof schema>
 

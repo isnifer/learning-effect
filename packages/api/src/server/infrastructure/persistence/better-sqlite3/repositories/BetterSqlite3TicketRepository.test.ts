@@ -1,6 +1,9 @@
+import { fileURLToPath } from 'node:url'
 import { BrowserCrypto } from '@effect/platform-browser'
-import { beforeEach, describe, expect, layer } from '@effect/vitest'
-import { env } from 'cloudflare:workers'
+import { afterAll, beforeEach, describe, expect, layer } from '@effect/vitest'
+import Database from 'better-sqlite3'
+import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
@@ -9,18 +12,32 @@ import TicketRepository, {
   TicketNotFoundError,
 } from '#/server/application/repositories/TicketRepository'
 import { TicketId, TicketTitle } from '#/shared/contracts/Ticket'
-import D1Client from '../client/D1Client'
-import D1TicketRepository from './D1TicketRepository'
+import * as schema from '../../sqlite/schema'
+import BetterSqlite3Client from '../client/BetterSqlite3Client'
+import BetterSqlite3TicketRepository from './BetterSqlite3TicketRepository'
 
-describe('D1TicketRepository', () => {
-  const InfrastructureTest = Layer.mergeAll(D1Client.layer(env.DB), BrowserCrypto.layer)
-  const D1TicketRepositoryTest = Layer.provide(D1TicketRepository, InfrastructureTest)
+const migrationsFolder = fileURLToPath(new URL('../../../../../../migrations', import.meta.url))
 
-  beforeEach(async () => {
-    await env.DB.exec('DELETE FROM tickets')
+describe('BetterSqlite3TicketRepository', () => {
+  const database = new Database(':memory:')
+  const client = drizzle(database, { schema })
+  const InfrastructureTest = Layer.mergeAll(
+    BetterSqlite3Client.layer(database),
+    BrowserCrypto.layer
+  )
+  const BetterSqlite3TicketRepositoryTest = Layer.provide(
+    BetterSqlite3TicketRepository,
+    InfrastructureTest
+  )
+
+  migrate(client, { migrationsFolder })
+
+  beforeEach(() => {
+    database.exec('DELETE FROM tickets')
   })
+  afterAll(() => database.close())
 
-  layer(D1TicketRepositoryTest)(it => {
+  layer(BetterSqlite3TicketRepositoryTest)(it => {
     it.effect('create: inserts and returns a Ticket', () =>
       Effect.gen(function* () {
         const ticketRepository = yield* TicketRepository
