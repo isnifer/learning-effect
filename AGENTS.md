@@ -8,6 +8,10 @@ Each package under `packages/*` must own its package-specific instructions in an
 package-specific supporting rules in `.agents/`. Keep only instructions that apply to every package
 in this root file.
 
+## Workspace rules
+
+- [Colocate tests with tested modules](.agents/rules/colocated-tests.md)
+
 ## Package instructions
 
 - [`packages/api/AGENTS.md`](packages/api/AGENTS.md)

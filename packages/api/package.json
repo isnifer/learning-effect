@@ -43,6 +43,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.50.0",
     "@cloudflare/vitest-pool-workers": "0.20.1",
+    "@effect/vitest": "4.0.0-beta.102",
     "@tailwindcss/typography": "0.5.20",
     "@tanstack/router-cli": "1.167.21",
     "@types/node": "26.1.2",
