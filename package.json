@@ -8,13 +8,15 @@
   "author": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm --filter red-docket dev",
-    "build": "pnpm --recursive build",
-    "electron:dev": "pnpm --filter red-docket electron:dev",
-    "electron:package": "pnpm --filter red-docket electron:package",
-    "electron:make": "pnpm --filter red-docket electron:make",
+    "dev": "pnpm --filter red-docket electron:dev",
+    "dev:web": "pnpm --filter red-docket dev",
+    "build": "pnpm --filter red-docket build",
+    "package": "pnpm --filter red-docket electron:package",
+    "make": "pnpm --filter red-docket electron:make",
     "prepare": "./scripts/prepare-effect.sh",
-    "test": "pnpm --recursive --if-present test"
+    "typecheck": "pnpm --filter red-docket typecheck",
+    "test": "pnpm --filter red-docket test",
+    "verify": "pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@effect/language-service": "0.87.1",

@@ -9,31 +9,36 @@ pnpm install
 pnpm dev
 ```
 
-The Node server listens on `http://127.0.0.1:3000` and exposes:
+This starts the Electron application with Vite hot reload. The Electron main process starts a Node
+server on `http://127.0.0.1:3000` that exposes:
 
 - the Vite React application;
 - oRPC at `/api/rpc`;
 - MCP Streamable HTTP at `/mcp`.
 
-The application stores data in `data/app.sqlite`. Set `DATABASE_PATH` to use another SQLite file.
-Drizzle migrations are applied automatically when the application runtime opens the database.
+The Electron application stores data in the platform user-data directory. On macOS, the database
+is `~/Library/Application Support/Red Docket/app.sqlite`. Drizzle migrations are applied
+automatically when the application runtime opens the database.
 
-### Electron
+### Browser development
 
-Run the desktop application with Vite hot reload:
+Run the application in a browser without Electron:
 
 ```bash
-pnpm electron:dev
+pnpm dev:web
 ```
 
-The Electron application stores data in the platform user-data directory. On macOS, the database
-is `~/Library/Application Support/Red Docket/app.sqlite`.
+The browser development server uses `data/app.sqlite`. Set `DATABASE_PATH` to use another SQLite
+file. Do not run browser and Electron development at the same time because both servers use port
+`3000`.
+
+### Packaging
 
 Build the unpacked application or the distributable ZIP:
 
 ```bash
-pnpm electron:package
-pnpm electron:make
+pnpm package
+pnpm make
 ```
 
 Forge writes both outputs to `packages/api/out`.
@@ -41,10 +46,10 @@ Forge writes both outputs to `packages/api/out`.
 ## Verification
 
 ```bash
-pnpm --filter red-docket typecheck
-pnpm --filter red-docket test
-pnpm --filter red-docket build
-pnpm --filter red-docket start
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm verify
 ```
 
 ## Database schema
