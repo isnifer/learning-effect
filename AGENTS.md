@@ -13,6 +13,7 @@ in this root file.
 - [Colocate tests with tested modules](.agents/rules/colocated-tests.md)
 - [Write tests explicitly](.agents/rules/explicit-tests.md)
 - [Name tests by subject, context, and behavior](.agents/rules/test-naming.md)
+- [Use the Red Docket product identity](.agents/rules/product-identity.md)
 
 ## Package instructions
 

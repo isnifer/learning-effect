@@ -1,5 +1,7 @@
 # Context map
 
+Red Docket is a local-first workspace for humans and coding agents.
+
 ## Contexts
 
 - [Ticket management](packages/api/CONTEXT.md) — tracks Tickets using Matt Pocock Skills terminology

@@ -8,7 +8,7 @@ const betterSqlite3Directory = dirname(require.resolve('better-sqlite3/package.j
 /** @type {import('@electron-forge/shared-types').ForgeConfig} */
 const config = {
   packagerConfig: {
-    name: 'Learning Effect',
+    name: 'Red Docket',
     asar: true,
     extraResource: ['migrations'],
   },

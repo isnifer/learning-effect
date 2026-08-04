@@ -7,7 +7,7 @@ import UpdateTicketTitleTool from './UpdateTicketTitleTool'
 
 const CreateMcpServer = (runPromise: AppRunPromise) => {
   const server = new McpServer({
-    name: 'learning-effect',
+    name: 'red-docket',
     version: '0.1.0',
   })
 

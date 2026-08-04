@@ -1,4 +1,4 @@
-# Learning Effect
+# Red Docket
 
 Local-first ticket manager with a React renderer and a Node.js backend.
 
@@ -27,7 +27,7 @@ pnpm electron:dev
 ```
 
 The Electron application stores data in the platform user-data directory. On macOS, the database
-is `~/Library/Application Support/Learning Effect/app.sqlite`.
+is `~/Library/Application Support/Red Docket/app.sqlite`.
 
 Build the unpacked application or the distributable ZIP:
 
