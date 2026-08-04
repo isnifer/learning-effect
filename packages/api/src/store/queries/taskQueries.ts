@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { orpc } from '#/lib/orpc'
 
-export const useTasksQuery = () => useQuery(orpc.task.getAll.queryOptions())
+export const useTasksQuery = () =>
+  useQuery(orpc.task.getAll.queryOptions({ refetchOnWindowFocus: true }))
 
 export const useCreateTask = () =>
   useMutation(
