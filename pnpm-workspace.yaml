@@ -7,9 +7,11 @@ allowBuilds:
   lightningcss: true
   msgpackr-extract: true
   sharp: true
-  workerd: true
 
 minimumReleaseAgeExclude:
   - '@effect/platform-browser@4.0.0-beta.103'
   - effect@4.0.0-beta.103
   - '@effect/vitest@4.0.0-beta.103'
+  - '@tanstack/router-core@1.171.16'
+  - '@tanstack/router-generator@1.167.22'
+  - '@tanstack/router-plugin@1.168.24'

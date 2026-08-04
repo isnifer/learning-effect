@@ -1,13 +1,20 @@
+import { fileURLToPath } from 'node:url'
 import { BrowserCrypto } from '@effect/platform-browser'
-import { env } from 'cloudflare:workers'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
-import D1Client from '../infrastructure/persistence/d1/client/D1Client'
-import D1TicketRepository from '../infrastructure/persistence/d1/repositories/D1TicketRepository'
+import BetterSqlite3Client from '../infrastructure/persistence/better-sqlite3/client/BetterSqlite3Client'
+import BetterSqlite3TicketRepository from '../infrastructure/persistence/better-sqlite3/repositories/BetterSqlite3TicketRepository'
 
-const InfrastructureLive = Layer.mergeAll(D1Client.layer(env.DB), BrowserCrypto.layer)
+const databaseFilename =
+  process.env.DATABASE_PATH ?? fileURLToPath(new URL('../../../data/app.sqlite', import.meta.url))
+const migrationsFolder = fileURLToPath(new URL('../../../migrations', import.meta.url))
 
-const AppServicesLive = Layer.provide(D1TicketRepository, InfrastructureLive)
+const InfrastructureLive = Layer.mergeAll(
+  BetterSqlite3Client.fromFile({ filename: databaseFilename, migrationsFolder }),
+  BrowserCrypto.layer
+)
+
+const AppServicesLive = Layer.provide(BetterSqlite3TicketRepository, InfrastructureLive)
 
 const AppRuntime = ManagedRuntime.make(AppServicesLive)
 

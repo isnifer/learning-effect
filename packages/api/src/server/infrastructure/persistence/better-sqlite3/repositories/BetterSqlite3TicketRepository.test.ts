@@ -22,7 +22,7 @@ describe('BetterSqlite3TicketRepository', () => {
   const database = new Database(':memory:')
   const client = drizzle(database, { schema })
   const InfrastructureTest = Layer.mergeAll(
-    BetterSqlite3Client.layer(database),
+    BetterSqlite3Client.fromDatabase(database),
     BrowserCrypto.layer
   )
   const BetterSqlite3TicketRepositoryTest = Layer.provide(

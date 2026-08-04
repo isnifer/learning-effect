@@ -24,8 +24,8 @@ timestamp, so descending lexicographical order places newer identifiers before o
 The status-to-group mapping must be exhaustive against the domain `TicketStatus` type. Adding a new
 status must produce a TypeScript error until that status is assigned to a workflow group.
 
-The D1 adapter implements this order with fixed status-group predicates composed through Drizzle,
-followed by descending UUIDv7 order.
+The SQLite adapter implements this order with fixed status-group predicates composed through
+Drizzle, followed by descending UUIDv7 order.
 
 ## Consequences
 

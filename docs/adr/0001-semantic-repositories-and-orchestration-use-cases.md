@@ -8,7 +8,7 @@ Use cases form the application boundary and coordinate a business scenario. They
 
 ## Theoretical basis
 
-Robert C. Martin's [Dependency Rule](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) requires source dependencies to point inward. Databases and frameworks are outer mechanisms, so D1, Drizzle, SQL defaults, and database row formats must not become contracts of the domain or application layers.
+Robert C. Martin's [Dependency Rule](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) requires source dependencies to point inward. Databases and frameworks are outer mechanisms, so SQLite, Drizzle, SQL defaults, and database row formats must not become contracts of the domain or application layers.
 
 The use-case layer follows Fowler's [Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html): it defines the application's available operations and coordinates its response to each operation, including work across several resources.
 
@@ -22,7 +22,7 @@ Repository implementations also perform the role described by [Data Mapper](http
 - A repository interface belongs to the application layer and is organized around domain entities.
 - A repository method may create, load, update, or remove domain entities when that operation is meaningful to its callers.
 - Repository implementations belong to infrastructure. They may use Drizzle, database defaults, provider-specific SQL, and lower-level mappers internally.
-- Repository implementations return values decoded by domain schemas. Drizzle models, D1 results, SQL timestamp strings, and other persistence representations do not cross the repository seam.
+- Repository implementations return values decoded by domain schemas. Drizzle models, SQLite rows, SQL timestamp strings, and other persistence representations do not cross the repository seam.
 - Interface adapters such as oRPC receive domain results from use cases and encode or map them into transport responses.
 - A separate DAO or mapper is introduced only when it hides real complexity or enables reuse. A repository implementation may call Drizzle directly.
 
@@ -31,8 +31,6 @@ For `CreateTicket`, `TicketRepository.create` owns the postconditions that the r
 ## Consequences
 
 - A simple use case may initially delegate to one repository. This is acceptable because it still defines the application operation and provides a stable place for future orchestration.
-- Repository fakes make use-case unit tests deterministic, but they do not prove SQL defaults, Drizzle mapping, or D1 behavior. Each infrastructure implementation needs repository contract tests against its real persistence technology.
-- Moving from D1 to PostgreSQL should primarily change migrations and infrastructure implementations. The use-case and domain contracts remain stable when the new adapter preserves the same repository semantics.
+- Repository stubs make use-case unit tests deterministic, but they do not prove SQL defaults, Drizzle mapping, or SQLite behavior. Each infrastructure implementation needs explicit integration tests against its real persistence technology.
+- Replacing the persistence technology should primarily change migrations and infrastructure implementations. The use-case and domain contracts remain stable when the new adapter preserves the same repository semantics.
 - If creation develops rules that are independent of persistence, those rules move into domain operations or the use case. They must not remain hidden inside a repository merely because creation started there.
-
-The field-generation alternatives and D1/PostgreSQL trade-offs are documented in [Responsibility for `Ticket` system fields](../research/uuid-generation-responsibility.md).
