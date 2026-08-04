@@ -10,6 +10,9 @@
   "scripts": {
     "dev": "pnpm --filter api dev",
     "build": "pnpm --recursive build",
+    "electron:dev": "pnpm --filter api electron:dev",
+    "electron:package": "pnpm --filter api electron:package",
+    "electron:make": "pnpm --filter api electron:make",
     "prepare": "./scripts/prepare-effect.sh",
     "test": "pnpm --recursive --if-present test"
   },

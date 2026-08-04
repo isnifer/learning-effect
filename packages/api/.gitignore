@@ -6,8 +6,11 @@ dist-ssr
 .env
 .nitro
 .tanstack
+.vite
 .wrangler
 .output
+.out
+out
 .vinxi
 __unconfig*
 .playwright-cli

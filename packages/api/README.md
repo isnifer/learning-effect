@@ -18,6 +18,26 @@ The Node server listens on `http://127.0.0.1:3000` and exposes:
 The application stores data in `data/app.sqlite`. Set `DATABASE_PATH` to use another SQLite file.
 Drizzle migrations are applied automatically when the application runtime opens the database.
 
+### Electron
+
+Run the desktop application with Vite hot reload:
+
+```bash
+pnpm electron:dev
+```
+
+The Electron application stores data in the platform user-data directory. On macOS, the database
+is `~/Library/Application Support/Learning Effect/app.sqlite`.
+
+Build the unpacked application or the distributable ZIP:
+
+```bash
+pnpm electron:package
+pnpm electron:make
+```
+
+Forge writes both outputs to `packages/api/out`.
+
 ## Verification
 
 ```bash

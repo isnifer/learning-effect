@@ -7,7 +7,8 @@ import BetterSqlite3TicketRepository from '../infrastructure/persistence/better-
 
 const databaseFilename =
   process.env.DATABASE_PATH ?? fileURLToPath(new URL('../../../data/app.sqlite', import.meta.url))
-const migrationsFolder = fileURLToPath(new URL('../../../migrations', import.meta.url))
+const migrationsFolder =
+  process.env.MIGRATIONS_PATH ?? fileURLToPath(new URL('../../../migrations', import.meta.url))
 
 const InfrastructureLive = Layer.mergeAll(
   BetterSqlite3Client.fromFile({ filename: databaseFilename, migrationsFolder }),

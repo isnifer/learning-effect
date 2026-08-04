@@ -1,8 +1,15 @@
 packages:
   - packages/*
 
+nodeLinker: hoisted
+
+overrides:
+  '@electron/node-gyp': 10.2.0-electron.2
+  extract-zip: npm:@electron-internal/extract-zip@1.0.5
+
 allowBuilds:
   better-sqlite3: true
+  electron: true
   esbuild: true
   lightningcss: true
   msgpackr-extract: true
@@ -15,3 +22,4 @@ minimumReleaseAgeExclude:
   - '@tanstack/router-core@1.171.16'
   - '@tanstack/router-generator@1.167.22'
   - '@tanstack/router-plugin@1.168.24'
+  - electron@43.3.0
