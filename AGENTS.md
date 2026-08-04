@@ -11,6 +11,7 @@ in this root file.
 ## Workspace rules
 
 - [Colocate tests with tested modules](.agents/rules/colocated-tests.md)
+- [Name tests by subject, context, and behavior](.agents/rules/test-naming.md)
 
 ## Package instructions
 
