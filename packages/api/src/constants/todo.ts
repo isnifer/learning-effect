@@ -7,27 +7,28 @@ export type TTodoFilter = typeof TodoFilter.Type
 export const TODO_STATUS_PRESENTATION = {
   TODO: {
     label: 'Todo',
-    badgeVariant: 'outline',
+    variant: 'neutral',
   },
   IN_PROGRESS: {
     label: 'In progress',
-    badgeVariant: 'secondary',
+    variant: 'information',
   },
   COMPLETED: {
     label: 'Completed',
-    badgeVariant: 'default',
+    variant: 'success',
   },
 } satisfies Record<
   TTodo['status'],
   {
     label: string
-    badgeVariant: 'default' | 'secondary' | 'outline'
+    variant: 'neutral' | 'information' | 'success'
   }
 >
 
 export const TODO_STATUS_OPTIONS = TodoStatus.literals.map(value => ({
   value,
   label: TODO_STATUS_PRESENTATION[value].label,
+  variant: TODO_STATUS_PRESENTATION[value].variant,
 }))
 
 export const TODO_FILTER_OPTIONS = [

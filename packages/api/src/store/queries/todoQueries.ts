@@ -18,3 +18,11 @@ export const useUpdateTodoStatus = () =>
         context.client.invalidateQueries({ queryKey: orpc.todo.getAll.queryKey() }),
     })
   )
+
+export const useUpdateTodoTitle = () =>
+  useMutation(
+    orpc.todo.updateTitle.mutationOptions({
+      onSuccess: (_data, _variables, _onMutateResult, context) =>
+        context.client.invalidateQueries({ queryKey: orpc.todo.getAll.queryKey() }),
+    })
+  )

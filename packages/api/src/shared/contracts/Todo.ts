@@ -24,6 +24,9 @@ export type TCreateTodoInput = typeof CreateTodoInput.Type
 export const UpdateTodoStatusInput = Todo.mapFields(Struct.pick(['id', 'status']))
 export type TUpdateTodoStatusInput = typeof UpdateTodoStatusInput.Type
 
+export const UpdateTodoTitleInput = Todo.mapFields(Struct.pick(['id', 'title']))
+export type TUpdateTodoTitleInput = typeof UpdateTodoTitleInput.Type
+
 export const Todos = Schema.Array(Todo)
 
 export default Todo

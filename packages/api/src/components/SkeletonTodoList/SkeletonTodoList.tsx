@@ -11,9 +11,8 @@ export default function SkeletonTodoList() {
             <ItemContent>
               <Skeleton className="h-4 w-2/3" />
             </ItemContent>
-            <ItemActions>
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-7 w-32" />
+            <ItemActions className="w-full justify-end sm:w-auto">
+              <Skeleton className="h-8 w-32" />
             </ItemActions>
           </Item>
         </div>

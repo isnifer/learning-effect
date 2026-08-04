@@ -26,5 +26,8 @@ export default class TodoRepository extends Context.Service<
     readonly updateStatus: (
       input: Pick<TTodo, 'id' | 'status'>
     ) => Effect.Effect<TTodo, TodoNotFoundError | TodoRepositoryError>
+    readonly updateTitle: (
+      input: Pick<TTodo, 'id' | 'title'>
+    ) => Effect.Effect<TTodo, TodoNotFoundError | TodoRepositoryError>
   }
 >()('TodoRepository') {}

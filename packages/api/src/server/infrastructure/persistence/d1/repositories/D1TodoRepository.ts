@@ -80,13 +80,13 @@ const D1TodoRepository = Layer.effect(TodoRepository)(
         ),
       updateStatus: input =>
         Effect.gen(function* () {
-          const todoItems = yield* Effect.tryPromise(() =>
+          const todoItem = yield* Effect.tryPromise(() =>
             db
               .update(todos)
               .set({ status: input.status })
               .where(eq(todos.id, input.id))
               .returning()
-              .all()
+              .get()
           ).pipe(
             Effect.mapError(cause =>
               TodoRepositoryError.make({
@@ -96,7 +96,6 @@ const D1TodoRepository = Layer.effect(TodoRepository)(
             )
           )
 
-          const todoItem = todoItems[0]
           if (!todoItem) {
             return yield* Effect.fail(TodoNotFoundError.make({ id: input.id }))
           }
@@ -105,6 +104,37 @@ const D1TodoRepository = Layer.effect(TodoRepository)(
             Effect.mapError(cause =>
               TodoRepositoryError.make({
                 operation: 'updateStatus',
+                cause,
+              })
+            )
+          )
+        }),
+      updateTitle: input =>
+        Effect.gen(function* () {
+          const todoItem = yield* Effect.tryPromise(() =>
+            db
+              .update(todos)
+              .set({ title: input.title })
+              .where(eq(todos.id, input.id))
+              .returning()
+              .get()
+          ).pipe(
+            Effect.mapError(cause =>
+              TodoRepositoryError.make({
+                operation: 'updateTitle',
+                cause,
+              })
+            )
+          )
+
+          if (!todoItem) {
+            return yield* Effect.fail(TodoNotFoundError.make({ id: input.id }))
+          }
+
+          return yield* Schema.decodeEffect(Todo)(todoItem).pipe(
+            Effect.mapError(cause =>
+              TodoRepositoryError.make({
+                operation: 'updateTitle',
                 cause,
               })
             )

@@ -11,3 +11,6 @@ Use React Aria Components only when the required primitive is not available from
 Create an application wrapper only when it adds stable composition, shared defaults, or an
 application-facing API. Do not wrap or replace a suitable shadcn component only to rename or restyle
 it.
+
+Do not customize shadcn-owned primitives under `src/components/ui`. Compose them in application
+components and define application variants with CVA at that layer.

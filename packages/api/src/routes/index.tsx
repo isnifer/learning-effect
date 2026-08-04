@@ -4,19 +4,12 @@ import { ListTodoIcon } from 'lucide-react'
 import { useState } from 'react'
 import Empty from '#/components/Empty'
 import FormCreateTodo from '#/components/FormCreateTodo'
+import FormUpdateTodoTitle from '#/components/FormUpdateTodoTitle'
 import Select from '#/components/Select'
 import SkeletonTodoList from '#/components/SkeletonTodoList'
-import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Card, CardContent, CardFooter } from '#/components/ui/card'
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemGroup,
-  ItemSeparator,
-  ItemTitle,
-} from '#/components/ui/item'
+import { Item, ItemActions, ItemContent, ItemGroup, ItemSeparator } from '#/components/ui/item'
 import { Tabs, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import {
   TODO_FILTER_OPTIONS,
@@ -25,7 +18,12 @@ import {
   TodoFilter,
   type TTodoFilter,
 } from '#/constants/todo'
-import { useCreateTodo, useTodosQuery, useUpdateTodoStatus } from '#/store/queries/todoQueries'
+import {
+  useCreateTodo,
+  useTodosQuery,
+  useUpdateTodoStatus,
+  useUpdateTodoTitle,
+} from '#/store/queries/todoQueries'
 
 export const Route = createFileRoute('/')({ component: TodoScreen })
 
@@ -34,6 +32,7 @@ function TodoScreen() {
   const todosQuery = useTodosQuery()
   const createTodo = useCreateTodo()
   const updateTodoStatus = useUpdateTodoStatus()
+  const updateTodoTitle = useUpdateTodoTitle()
 
   const todos = todosQuery.data ?? []
   const visibleTodos = filter === 'ALL' ? todos : todos.filter(todo => todo.status === filter)
@@ -109,19 +108,18 @@ function TodoScreen() {
                     {index > 0 && <ItemSeparator className="my-0" />}
                     <Item className="rounded-none px-0 py-4">
                       <ItemContent>
-                        <ItemTitle
-                          className={
-                            todo.status === 'COMPLETED'
-                              ? 'text-muted-foreground line-through'
-                              : undefined
-                          }>
-                          {todo.title}
-                        </ItemTitle>
+                        <FormUpdateTodoTitle
+                          todo={todo}
+                          isPending={
+                            updateTodoTitle.isPending && updateTodoTitle.variables?.id === todo.id
+                          }
+                          error={
+                            updateTodoTitle.variables?.id === todo.id ? updateTodoTitle.error : null
+                          }
+                          onUpdate={input => updateTodoTitle.mutateAsync(input)}
+                        />
                       </ItemContent>
-                      <ItemActions className="w-full justify-between sm:w-auto sm:justify-end">
-                        <Badge variant={TODO_STATUS_PRESENTATION[todo.status].badgeVariant}>
-                          {TODO_STATUS_PRESENTATION[todo.status].label}
-                        </Badge>
+                      <ItemActions className="w-full justify-end sm:w-auto">
                         <Select
                           ariaLabel={`Change status for ${todo.title}`}
                           value={todo.status}
@@ -129,7 +127,7 @@ function TodoScreen() {
                           isDisabled={
                             updateTodoStatus.isPending && updateTodoStatus.variables?.id === todo.id
                           }
-                          size="sm"
+                          variant={TODO_STATUS_PRESENTATION[todo.status].variant}
                           triggerClassName="w-32"
                           onChange={status => {
                             if (status !== todo.status) {

@@ -104,5 +104,38 @@ describe('D1TodoRepository', () => {
         expect(error).toStrictEqual(TodoNotFoundError.make({ id }))
       })
     )
+
+    it.effect('updateTitle: updates and returns a Todo', () =>
+      Effect.gen(function* () {
+        const todoRepository = yield* TodoRepository
+
+        const todoTitle = yield* Schema.decodeEffect(TodoTitle)('Original Todo')
+        const updatedTodoTitle = yield* Schema.decodeEffect(TodoTitle)('Updated Todo')
+        const createdTodo = yield* todoRepository.create({ title: todoTitle })
+        const updatedTodo = yield* todoRepository.updateTitle({
+          id: createdTodo.id,
+          title: updatedTodoTitle,
+        })
+        const todos = yield* todoRepository.getAll()
+
+        expect(updatedTodo).toStrictEqual({
+          ...createdTodo,
+          title: updatedTodoTitle,
+        })
+        expect(todos).toContainEqual(updatedTodo)
+      })
+    )
+
+    it.effect('updateTitle: fails with TodoNotFoundError when the Todo does not exist', () =>
+      Effect.gen(function* () {
+        const todoRepository = yield* TodoRepository
+        const id = yield* Schema.decodeEffect(TodoId)('019fcc1a-bd5d-751e-9a30-0bc92d133b2d')
+        const title = yield* Schema.decodeEffect(TodoTitle)('Updated Todo')
+
+        const error = yield* todoRepository.updateTitle({ id, title }).pipe(Effect.flip)
+
+        expect(error).toStrictEqual(TodoNotFoundError.make({ id }))
+      })
+    )
   })
 })
