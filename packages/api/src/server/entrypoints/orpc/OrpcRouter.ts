@@ -1,5 +1,7 @@
 import TodoRouter from './TodoRouter'
 
-export default {
+const OrpcRouter = {
   todo: TodoRouter,
 }
+
+export default OrpcRouter

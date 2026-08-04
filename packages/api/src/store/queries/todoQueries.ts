@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { orpc } from '#/orpc/client'
+import { orpc } from '#/lib/orpc'
 
 export const useTodosQuery = () => useQuery(orpc.todo.getAll.queryOptions())
 

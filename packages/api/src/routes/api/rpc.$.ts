@@ -1,10 +1,10 @@
 import '#/polyfill'
 import { RPCHandler } from '@orpc/server/fetch'
 import { createFileRoute } from '@tanstack/react-router'
-import router from '#/orpc/router'
+import OrpcRouter from '#/server/entrypoints/orpc/OrpcRouter'
 import AppRuntime from '#/server/runtime/AppRuntime'
 
-const handler = new RPCHandler(router)
+const handler = new RPCHandler(OrpcRouter)
 
 async function handle({ request }: { request: Request }) {
   const { response } = await handler.handle(request, {

@@ -1,0 +1,3 @@
+[mcp_servers.learning_effect]
+url = "http://localhost:5173/mcp"
+default_tools_approval_mode = "writes"
