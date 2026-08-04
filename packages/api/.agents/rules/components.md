@@ -20,6 +20,13 @@ Do not write components as `const ComponentName = (...) => { ... }` followed by
 
 Do not add a named export for the same component or function.
 
+When a complete control requires a repeated composition of shadcn primitives, expose that
+composition through an application component. Screen files should pass the control's value,
+options, callbacks, and state instead of assembling its trigger, content, and items inline.
+
+Do not create an application wrapper that only forwards the primitive's props without adding a
+stable composition, shared defaults, or application-facing API.
+
 This export style is also a migration marker. When creating a new component or
 rewriting, extracting, or decomposing a legacy component, convert the touched
 component to `export default function ComponentName(...)`. Legacy components
@@ -27,6 +34,10 @@ that still use `const Component = ...; export default Component` have not yet
 been migrated.
 
 The component name must use PascalCase and match the file name.
+
+Put a component's UI kind at the beginning of its name so components of the same kind sort together.
+For example, use `FormCreateTodo`, `DialogCreateTodo`, and `SkeletonTodoList` instead of
+`CreateTodoForm`, `CreateTodoDialog`, and `TodoListSkeleton`.
 
 Within a feature directory, place component directories directly under the
 feature root. Do not introduce generic organizational layers such as
