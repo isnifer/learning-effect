@@ -1,9 +1,11 @@
+import { eq } from 'drizzle-orm'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import TodoRepository, {
+  TodoNotFoundError,
   TodoRepositoryError,
 } from '#/server/application/repositories/TodoRepository'
 import Todo from '#/server/domain/entities/Todo'
@@ -53,6 +55,38 @@ const D1TodoRepository = Layer.effect(TodoRepository)(
             })
           )
         ),
+      updateStatus: input =>
+        Effect.gen(function* () {
+          const todoItems = yield* Effect.tryPromise(() =>
+            db
+              .update(todos)
+              .set({ status: input.status })
+              .where(eq(todos.id, input.id))
+              .returning()
+              .all()
+          ).pipe(
+            Effect.mapError(cause =>
+              TodoRepositoryError.make({
+                operation: 'updateStatus',
+                cause,
+              })
+            )
+          )
+
+          const todoItem = todoItems[0]
+          if (!todoItem) {
+            return yield* Effect.fail(TodoNotFoundError.make({ id: input.id }))
+          }
+
+          return yield* Schema.decodeEffect(Todo)(todoItem).pipe(
+            Effect.mapError(cause =>
+              TodoRepositoryError.make({
+                operation: 'updateStatus',
+                cause,
+              })
+            )
+          )
+        }),
     }
   })
 )

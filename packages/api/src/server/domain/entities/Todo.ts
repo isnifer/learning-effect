@@ -1,6 +1,6 @@
 import * as Schema from 'effect/Schema'
 
-const TodoId = Schema.String.pipe(Schema.check(Schema.isUUID(7)), Schema.brand('TodoId'))
+export const TodoId = Schema.String.pipe(Schema.check(Schema.isUUID(7)), Schema.brand('TodoId'))
 
 export const TodoTitle = Schema.Trim.pipe(
   Schema.check(Schema.isNonEmpty()),
