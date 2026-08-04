@@ -1,4 +1,4 @@
-# Responsibility for `Todo` system fields
+# Responsibility for `Task` system fields
 
 Status: researched on 2026-08-03.
 
@@ -12,10 +12,10 @@ The stable inner contract should describe semantics. The outer adapter can use a
 
 For this project, the strongest default design is:
 
-- Domain owns the rule that a new `Todo` starts in `TODO`.
+- Domain owns the rule that a new `Task` starts in `TODO`.
 - Application obtains a UUIDv7 from an `IdGenerator` port.
 - Application obtains the creation instant from Effect's `Clock` service.
-- Application gives a complete domain `Todo` to `TodoRepository.insert` or `save`.
+- Application gives a complete domain `Task` to `TaskRepository.insert` or `save`.
 - The repository adapter maps the domain entity to D1 or Postgres rows.
 - The database enforces storage constraints. Database defaults can exist as defense in depth, but the application does not rely on them for domain semantics.
 
@@ -33,11 +33,11 @@ This gives two important conclusions:
 Therefore both of these ports can respect the Dependency Rule:
 
 ```ts
-TodoRepository.insert(todo: TTodo): Effect<TTodo, TodoRepositoryError>
+TaskRepository.insert(task: TTask): Effect<TTask, TaskRepositoryError>
 ```
 
 ```ts
-TodoRepository.create(input: TCreateTodoInput): Effect<TTodo, TodoRepositoryError>
+TaskRepository.create(input: TCreateTaskInput): Effect<TTask, TaskRepositoryError>
 ```
 
 The difference is ownership. With `insert`, domain/application code creates the entity. With `create`, the repository contract also owns the guarantee that it will return a new valid entity. Every adapter and test implementation must reproduce that guarantee.
@@ -46,14 +46,14 @@ The difference is ownership. With `insert`, domain/application code creates the 
 
 ### Domain
 
-The domain defines what a valid `Todo` is and which rules are true when it is created.
+The domain defines what a valid `Task` is and which rules are true when it is created.
 
 It should own:
 
 - the branded UUIDv7 identity type and its validation;
 - the allowed status values;
-- the rule that a newly created `Todo` starts in `TODO`;
-- a pure constructor or function that creates a `Todo` from already supplied system values.
+- the rule that a newly created `Task` starts in `TODO`;
+- a pure constructor or function that creates a `Task` from already supplied system values.
 
 It should not read a clock, call a UUID library, import Drizzle, or execute SQL. Those actions are mechanisms.
 
@@ -65,11 +65,11 @@ The application layer orchestrates the creation workflow.
 
 It can:
 
-- accept the decoded `CreateTodoInput`;
+- accept the decoded `CreateTaskInput`;
 - request a UUIDv7 through an application-owned port;
 - read the current time through Effect's `Clock`;
 - call the domain constructor;
-- persist the complete entity through `TodoRepository`.
+- persist the complete entity through `TaskRepository`.
 
 Effect already models wall-clock time as a service. `Clock.currentTimeMillis` reads from the active `Clock`, and the official source shows that another `Clock` can be provided for a deterministic program ([Effect `Clock.ts` at the vendored commit](https://github.com/Effect-TS/effect/blob/b75884413b15829de2790aeae5d8087f6ffaa196/packages/effect/src/Clock.ts#L240-L265)). A UUIDv7 generator can follow the same service-and-layer model.
 
@@ -127,11 +127,11 @@ A default is not a complete domain invariant. A `status DEFAULT 'TODO'` applies 
 Flow:
 
 ```text
-CreateTodoInput
+CreateTaskInput
   -> UUIDv7 service + Effect Clock
   -> domain constructor sets TODO
-  -> TodoRepository.insert(TTodo)
-  -> TTodo
+  -> TaskRepository.insert(TTask)
+  -> TTask
 ```
 
 Advantages:
@@ -161,10 +161,10 @@ Best fit:
 Flow:
 
 ```text
-CreateTodoInput
-  -> TodoRepository.create(input)
+CreateTaskInput
+  -> TaskRepository.create(input)
   -> adapter generates or requests defaults
-  -> adapter returns decoded TTodo
+  -> adapter returns decoded TTask
 ```
 
 Advantages:
@@ -198,7 +198,7 @@ Flow:
 INSERT title only
   -> database defaults id, status, createdAt
   -> INSERT ... RETURNING
-  -> adapter decodes TTodo
+  -> adapter decodes TTask
 ```
 
 Advantages:
@@ -237,10 +237,10 @@ A database `DEFAULT 'TODO'`, `NOT NULL`, and status `CHECK` can remain as defens
 
 First define its meaning:
 
-- If it means “the domain `Todo` came into existence”, obtain it in the application and pass it to the domain constructor.
+- If it means “the domain `Task` came into existence”, obtain it in the application and pass it to the domain constructor.
 - If it means “this row was inserted into this database”, generate it in the database. Consider naming it `persistedAt` if both concepts may later exist.
 
-For the current `Todo`, “entity creation instant” is the more useful interpretation. Recommended owner: application through Effect `Clock`.
+For the current `Task`, “entity creation instant” is the more useful interpretation. Recommended owner: application through Effect `Clock`.
 
 If D1 generates it, SQLite specifies that `CURRENT_TIMESTAMP` is UTC text in `YYYY-MM-DD HH:MM:SS` format. It has second precision and no explicit `Z` suffix ([SQLite `CREATE TABLE`](https://www.sqlite.org/lang_createtable.html#the_default_clause)). The adapter must make the UTC assumption explicit when decoding.
 
@@ -250,7 +250,7 @@ If Postgres generates it, use `timestamptz`, not bare `timestamp`. PostgreSQL st
 
 The requirement that an ID is UUIDv7 belongs to the domain contract. The mechanism that generates it is replaceable.
 
-Recommended owner of the mechanism: an application-facing `TodoIdGenerator` service with an outer production layer.
+Recommended owner of the mechanism: an application-facing `TaskIdGenerator` service with an outer production layer.
 
 This makes the application portable and testable. The concrete generator can run in the Worker today. A future design can replace it without changing the domain type.
 
@@ -284,33 +284,33 @@ Consequences:
 | Initial status       | Text default and `CHECK`                                                                         | Text/enum default and constraint                                  | Preserve the domain rule independently. Treat SQL default syntax as adapter migration detail.                |
 | Returned row         | D1/Drizzle representation                                                                        | PostgreSQL driver/Drizzle representation                          | Keep both representations outside the repository port and decode into the same domain entity.                |
 
-The migration cost is primarily in schema migration and adapter mapping. It does not need to leak into the domain or use case if the inner contracts use `TodoId`, `TodoStatus`, and `DateTime.Utc` rather than database types.
+The migration cost is primarily in schema migration and adapter mapping. It does not need to leak into the domain or use case if the inner contracts use `TaskId`, `TaskStatus`, and `DateTime.Utc` rather than database types.
 
 ## Recommended design for this repository
 
 Use this responsibility split:
 
 ```text
-domain/entities/Todo
-  validates Todo
-  creates a new Todo with status TODO
+domain/entities/Task
+  validates Task
+  creates a new Task with status TODO
   accepts id and createdAt as already supplied values
 
-application/usecases/CreateTodo
-  accepts TCreateTodoInput
-  obtains TodoIdGenerator
+application/usecases/CreateTask
+  accepts TCreateTaskInput
+  obtains TaskIdGenerator
   obtains Effect Clock
   calls the domain constructor
-  calls TodoRepository.insert(todo)
+  calls TaskRepository.insert(task)
 
 application ports
-  TodoIdGenerator: generate -> Effect<TTodoId, ...>
-  TodoRepository: insert(TTodo) -> Effect<TTodo, ...>
+  TaskIdGenerator: generate -> Effect<TTaskId, ...>
+  TaskRepository: insert(TTask) -> Effect<TTask, ...>
 
 infrastructure adapter
-  implements TodoIdGenerator with a Worker-compatible UUIDv7 library
-  maps TTodo to Drizzle/D1
-  decodes returned rows into TTodo
+  implements TaskIdGenerator with a Worker-compatible UUIDv7 library
+  maps TTask to Drizzle/D1
+  decodes returned rows into TTask
 
 database
   PRIMARY KEY, NOT NULL, UNIQUE, status CHECK
@@ -319,7 +319,7 @@ database
 
 This design does not require premature abstraction around Postgres. The two ports are already justified by current behavior: ID generation is replaceable, and persistence is external.
 
-If the preferred API remains `TodoRepository.create(input)`, document it as a semantic port and use contract tests against every adapter. That approach is valid, but it deliberately assigns entity construction to the repository abstraction. Do not describe it as “the database creates the entity” when UUIDv7 comes from Drizzle `$defaultFn`; that function runs in the application runtime.
+If the preferred API remains `TaskRepository.create(input)`, document it as a semantic port and use contract tests against every adapter. That approach is valid, but it deliberately assigns entity construction to the repository abstraction. Do not describe it as “the database creates the entity” when UUIDv7 comes from Drizzle `$defaultFn`; that function runs in the application runtime.
 
 ## Decision guide
 

@@ -1,7 +1,7 @@
-import TodoRouter from './TodoRouter'
+import TaskRouter from './TaskRouter'
 
 const OrpcRouter = {
-  todo: TodoRouter,
+  task: TaskRouter,
 }
 
 export default OrpcRouter

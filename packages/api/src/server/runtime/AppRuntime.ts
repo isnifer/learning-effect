@@ -3,11 +3,11 @@ import { env } from 'cloudflare:workers'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
 import D1Client from '../infrastructure/persistence/d1/client/D1Client'
-import D1TodoRepository from '../infrastructure/persistence/d1/repositories/D1TodoRepository'
+import D1TaskRepository from '../infrastructure/persistence/d1/repositories/D1TaskRepository'
 
 const InfrastructureLive = Layer.mergeAll(D1Client.layer(env.DB), BrowserCrypto.layer)
 
-const AppServicesLive = Layer.provide(D1TodoRepository, InfrastructureLive)
+const AppServicesLive = Layer.provide(D1TaskRepository, InfrastructureLive)
 
 const AppRuntime = ManagedRuntime.make(AppServicesLive)
 

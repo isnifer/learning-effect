@@ -1,9 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/server'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
-import CreateTodoTool from './CreateTodoTool'
-import GetTodosTool from './GetTodosTool'
-import UpdateTodoStatusTool from './UpdateTodoStatusTool'
-import UpdateTodoTitleTool from './UpdateTodoTitleTool'
+import CreateTaskTool from './CreateTaskTool'
+import GetTasksTool from './GetTasksTool'
+import UpdateTaskStatusTool from './UpdateTaskStatusTool'
+import UpdateTaskTitleTool from './UpdateTaskTitleTool'
 
 const CreateMcpServer = (runPromise: AppRunPromise) => {
   const server = new McpServer({
@@ -11,10 +11,10 @@ const CreateMcpServer = (runPromise: AppRunPromise) => {
     version: '0.1.0',
   })
 
-  CreateTodoTool(server, runPromise)
-  GetTodosTool(server, runPromise)
-  UpdateTodoStatusTool(server, runPromise)
-  UpdateTodoTitleTool(server, runPromise)
+  CreateTaskTool(server, runPromise)
+  GetTasksTool(server, runPromise)
+  UpdateTaskStatusTool(server, runPromise)
+  UpdateTaskTitleTool(server, runPromise)
 
   return server
 }

@@ -1,11 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "5c2d60f1-09a6-4263-97ee-7413c23edf68",
+  "id": "ad518b4c-decb-42b4-842f-5a997112f26f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "todos": {
-      "name": "todos",
+    "tasks": {
+      "name": "tasks",
       "columns": {
         "id": {
           "name": "id",
@@ -42,9 +42,9 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {
-        "todos_status_check": {
-          "name": "todos_status_check",
-          "value": "\"todos\".\"status\" in ('TODO', 'IN_PROGRESS', 'COMPLETED')"
+        "tasks_status_check": {
+          "name": "tasks_status_check",
+          "value": "\"tasks\".\"status\" in ('TODO', 'IN_PROGRESS', 'COMPLETED')"
         }
       }
     }

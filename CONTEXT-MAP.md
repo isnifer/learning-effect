@@ -2,7 +2,7 @@
 
 ## Contexts
 
-- [Todo application](packages/api/CONTEXT.md) — receives and tracks Todos.
+- [Task management](packages/api/CONTEXT.md) — organizes personal projects and tracks Tasks.
   - [Package instructions](packages/api/AGENTS.md)
   - [Package-local rules](packages/api/.agents)
 

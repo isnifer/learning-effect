@@ -14,8 +14,8 @@ Drizzle schema modules are an exception to the PascalCase default-export convent
 module after its lowercase plural database table, use a named export with the same name, and re-export
 all tables from `src/server/infrastructure/persistence/d1/schema/index.ts`.
 
-Prefix TypeScript type aliases derived from Effect schemas with `T`, such as `TTodo` and
-`TCreateTodoInput`. Keep runtime schema names unprefixed. Use `Schema.brand` when values with the same
+Prefix TypeScript type aliases derived from Effect schemas with `T`, such as `TTask` and
+`TCreateTaskInput`. Keep runtime schema names unprefixed. Use `Schema.brand` when values with the same
 underlying TypeScript type need distinct domain identities; the `T` prefix does not provide nominal
 typing.
 
@@ -32,4 +32,4 @@ typing.
 ## Architecture
 
 - [Semantic repositories and orchestration use cases](../../docs/adr/0001-semantic-repositories-and-orchestration-use-cases.md)
-- [Order todos by workflow group and UUIDv7](../../docs/adr/0002-order-todos-by-workflow-group-and-uuidv7.md)
+- [Order tasks by workflow group and UUIDv7](../../docs/adr/0002-order-tasks-by-workflow-group-and-uuidv7.md)
