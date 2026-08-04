@@ -7,3 +7,8 @@ allowBuilds:
   msgpackr-extract: true
   sharp: true
   workerd: true
+
+minimumReleaseAgeExclude:
+  - '@effect/platform-browser@4.0.0-beta.103'
+  - effect@4.0.0-beta.103
+  - '@effect/vitest@4.0.0-beta.103'

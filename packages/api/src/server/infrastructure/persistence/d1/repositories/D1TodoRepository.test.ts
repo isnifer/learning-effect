@@ -14,7 +14,7 @@ describe('D1TodoRepository', () => {
   const D1TodoRepositoryTest = Layer.provide(D1TodoRepository, InfrastructureTest)
 
   layer(D1TodoRepositoryTest)(it => {
-    it.effect('create: persists and returns a Todo', () =>
+    it.effect('create: inserts and returns a Todo', () =>
       Effect.gen(function* () {
         const todoRepository = yield* TodoRepository
 
