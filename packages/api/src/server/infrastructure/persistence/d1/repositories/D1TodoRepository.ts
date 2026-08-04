@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { asc, desc, eq, inArray } from 'drizzle-orm'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
 import * as Effect from 'effect/Effect'
@@ -8,9 +8,22 @@ import TodoRepository, {
   TodoNotFoundError,
   TodoRepositoryError,
 } from '#/server/application/repositories/TodoRepository'
-import Todo from '#/shared/contracts/Todo'
+import Todo, { TodoStatus, type TTodo } from '#/shared/contracts/Todo'
 import D1Client from '../client/D1Client'
 import { todos } from '../schema'
+
+const todoStatusGroup = {
+  IN_PROGRESS: 'ACTIVE',
+  TODO: 'PENDING',
+  COMPLETED: 'COMPLETED',
+} satisfies Record<TTodo['status'], 'ACTIVE' | 'PENDING' | 'COMPLETED'>
+
+const activeTodoStatuses = TodoStatus.literals.filter(
+  status => todoStatusGroup[status] === 'ACTIVE'
+)
+const completedTodoStatuses = TodoStatus.literals.filter(
+  status => todoStatusGroup[status] === 'COMPLETED'
+)
 
 const D1TodoRepository = Layer.effect(TodoRepository)(
   Effect.gen(function* () {
@@ -46,7 +59,17 @@ const D1TodoRepository = Layer.effect(TodoRepository)(
           )
         ),
       getAll: () =>
-        Effect.tryPromise(() => db.select().from(todos).all()).pipe(
+        Effect.tryPromise(() =>
+          db
+            .select()
+            .from(todos)
+            .orderBy(
+              desc(inArray(todos.status, activeTodoStatuses)),
+              asc(inArray(todos.status, completedTodoStatuses)),
+              desc(todos.id)
+            )
+            .all()
+        ).pipe(
           Effect.flatMap(Schema.decodeEffect(Schema.Array(Todo))),
           Effect.mapError(cause =>
             TodoRepositoryError.make({

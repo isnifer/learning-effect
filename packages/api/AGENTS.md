@@ -27,7 +27,9 @@ typing.
 - [Place each schema-derived type next to its schema](.agents/rules/schema-derived-type-placement.md)
 - [Organize TanStack Query hooks](.agents/rules/tanstack-query-hooks.md)
 - [Prefer truthiness checks for absent values](.agents/rules/truthiness-checks.md)
+- [Prefer shadcn components](.agents/rules/shadcn/component-selection.md)
 
 ## Architecture
 
 - [Semantic repositories and orchestration use cases](../../docs/adr/0001-semantic-repositories-and-orchestration-use-cases.md)
+- [Order todos by workflow group and UUIDv7](../../docs/adr/0002-order-todos-by-workflow-group-and-uuidv7.md)

@@ -36,4 +36,7 @@ export const TODO_FILTER_OPTIONS = [
     label: 'All',
   },
   ...TODO_STATUS_OPTIONS,
-]
+] satisfies ReadonlyArray<{
+  value: TTodoFilter
+  label: string
+}>

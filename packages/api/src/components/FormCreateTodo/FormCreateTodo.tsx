@@ -44,7 +44,7 @@ export default function FormCreateTodo({ isPending, error, onCreate }: FormCreat
             aria-invalid={!!errors.title}
             disabled={isPending}
           />
-          <InputGroupAddon align="inline-end">
+          <InputGroupAddon align="inline-end" className="pr-1">
             <InputGroupButton type="submit" variant="default" size="sm" isDisabled={isPending}>
               {isPending ? 'Adding…' : 'Add todo'}
             </InputGroupButton>

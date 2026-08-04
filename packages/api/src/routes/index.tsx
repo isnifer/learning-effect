@@ -17,7 +17,7 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '#/components/ui/item'
-import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import { Tabs, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import {
   TODO_FILTER_OPTIONS,
   TODO_STATUS_OPTIONS,
@@ -57,26 +57,23 @@ function TodoScreen() {
               onCreate={input => createTodo.mutateAsync(input)}
             />
 
-            <ToggleGroup
-              aria-label="Filter todos"
-              selectionMode="single"
-              disallowEmptySelection
-              variant="outline"
-              spacing={0}
-              selectedKeys={[filter]}
-              onSelectionChange={keys => {
-                const selectedFilter = Schema.decodeUnknownOption(TodoFilter)([...keys][0])
+            <Tabs
+              selectedKey={filter}
+              onSelectionChange={key => {
+                const selectedFilter = Schema.decodeUnknownOption(TodoFilter)(key)
 
                 if (selectedFilter._tag === 'Some') {
                   setFilter(selectedFilter.value)
                 }
               }}>
-              {TODO_FILTER_OPTIONS.map(({ value, label }) => (
-                <ToggleGroupItem key={value} id={value} className="px-3">
-                  {label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+              <TabsList aria-label="Filter todos">
+                {TODO_FILTER_OPTIONS.map(option => (
+                  <TabsTrigger key={option.value} id={option.value}>
+                    {option.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
 
             {todosQuery.isPending && <SkeletonTodoList />}
 

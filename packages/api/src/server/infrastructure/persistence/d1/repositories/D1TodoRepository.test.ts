@@ -4,6 +4,7 @@ import { env } from 'cloudflare:workers'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
+import { TestClock } from 'effect/testing'
 import TodoRepository, { TodoNotFoundError } from '#/server/application/repositories/TodoRepository'
 import { TodoId, TodoTitle } from '#/shared/contracts/Todo'
 import D1Client from '../client/D1Client'
@@ -25,15 +26,49 @@ describe('D1TodoRepository', () => {
       })
     )
 
-    it.effect('getAll: returns persisted Todos', () =>
+    it.effect('getAll: orders status groups and then UUIDv7 descending', () =>
       Effect.gen(function* () {
         const todoRepository = yield* TodoRepository
 
-        const todoTitle = yield* Schema.decodeEffect(TodoTitle)('Listed Todo')
-        const createdTodo = yield* todoRepository.create({ title: todoTitle })
-        const todos = yield* todoRepository.getAll()
+        const olderInProgressTitle = yield* Schema.decodeEffect(TodoTitle)('Older In Progress')
+        const todoTitle = yield* Schema.decodeEffect(TodoTitle)('Todo')
+        const newerInProgressTitle = yield* Schema.decodeEffect(TodoTitle)('Newer In Progress')
+        const completedTitle = yield* Schema.decodeEffect(TodoTitle)('Completed')
 
-        expect(todos).toContainEqual(createdTodo)
+        const olderInProgressTodo = yield* todoRepository.create({ title: olderInProgressTitle })
+        const olderInProgress = yield* todoRepository.updateStatus({
+          id: olderInProgressTodo.id,
+          status: 'IN_PROGRESS',
+        })
+
+        yield* TestClock.adjust('1 millis')
+        const todo = yield* todoRepository.create({ title: todoTitle })
+
+        yield* TestClock.adjust('1 millis')
+        const newerInProgressTodo = yield* todoRepository.create({ title: newerInProgressTitle })
+        const newerInProgress = yield* todoRepository.updateStatus({
+          id: newerInProgressTodo.id,
+          status: 'IN_PROGRESS',
+        })
+
+        yield* TestClock.adjust('1 millis')
+        const completedTodo = yield* todoRepository.create({ title: completedTitle })
+        const completed = yield* todoRepository.updateStatus({
+          id: completedTodo.id,
+          status: 'COMPLETED',
+        })
+
+        const todos = yield* todoRepository.getAll()
+        const createdTodoIds = new Set([
+          olderInProgress.id,
+          todo.id,
+          newerInProgress.id,
+          completed.id,
+        ])
+        const createdTodos = todos.filter(todo => createdTodoIds.has(todo.id))
+
+        expect(newerInProgress.id > olderInProgress.id).toBe(true)
+        expect(createdTodos).toStrictEqual([newerInProgress, olderInProgress, todo, completed])
       })
     )
 
