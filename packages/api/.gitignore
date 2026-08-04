@@ -10,7 +10,7 @@ dist-ssr
 .output
 .vinxi
 __unconfig*
-todos.json
+.playwright-cli
 
 .dev.vars*
 !.dev.vars.example
