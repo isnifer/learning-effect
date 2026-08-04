@@ -5,7 +5,7 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import TodoRepository, { TodoNotFoundError } from '#/server/application/repositories/TodoRepository'
-import { TodoId, TodoTitle } from '#/server/domain/entities/Todo'
+import { TodoId, TodoTitle } from '#/shared/contracts/Todo'
 import D1Client from '../client/D1Client'
 import D1TodoRepository from './D1TodoRepository'
 

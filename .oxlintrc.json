@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "ignorePatterns": [
+    "packages/api/src/components/ui/**",
     "packages/api/src/routeTree.gen.ts",
     "packages/api/worker-configuration.d.ts"
   ],

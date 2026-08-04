@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { check, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { TodoStatus } from '#/server/domain/entities/Todo'
+import { TodoStatus } from '#/shared/contracts/Todo'
 
 const todoStatusValues = sql
   .join(

@@ -8,8 +8,8 @@ import TodoRepositoryStub from '#/server/application/repositories/testing/TodoRe
 import TodoRepository, {
   TodoRepositoryError,
 } from '#/server/application/repositories/TodoRepository'
-import Todo from '#/server/domain/entities/Todo'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
+import Todo from '#/shared/contracts/Todo'
 import GetTodosProcedure from './GetTodosProcedure'
 
 describe('GetTodosProcedure', () => {
@@ -44,7 +44,7 @@ describe('GetTodosProcedure', () => {
     it('getAll: returns Todos', async () => {
       const result = await callGetTodos(SuccessRuntime.runPromise)
 
-      expect(result).toBe(expectedTodos)
+      expect(result).toStrictEqual(expectedTodos)
     })
   })
 

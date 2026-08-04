@@ -8,7 +8,7 @@ import TodoRepository, {
   TodoNotFoundError,
   TodoRepositoryError,
 } from '#/server/application/repositories/TodoRepository'
-import Todo from '#/server/domain/entities/Todo'
+import Todo from '#/shared/contracts/Todo'
 import D1Client from '../client/D1Client'
 import { todos } from '../schema'
 

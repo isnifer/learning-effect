@@ -8,8 +8,8 @@ import TodoRepositoryStub from '#/server/application/repositories/testing/TodoRe
 import TodoRepository, {
   TodoRepositoryError,
 } from '#/server/application/repositories/TodoRepository'
-import Todo from '#/server/domain/entities/Todo'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
+import Todo from '#/shared/contracts/Todo'
 import CreateTodoProcedure from './CreateTodoProcedure'
 
 describe('CreateTodoProcedure', () => {
@@ -40,7 +40,7 @@ describe('CreateTodoProcedure', () => {
     it('create: returns the created Todo', async () => {
       const result = await callCreateTodo(SuccessRuntime.runPromise)
 
-      expect(result).toBe(expectedTodo)
+      expect(result).toStrictEqual(expectedTodo)
     })
   })
 

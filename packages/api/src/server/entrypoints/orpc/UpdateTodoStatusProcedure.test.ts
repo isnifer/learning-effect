@@ -9,9 +9,8 @@ import TodoRepository, {
   TodoNotFoundError,
   TodoRepositoryError,
 } from '#/server/application/repositories/TodoRepository'
-import { UpdateTodoStatusInput } from '#/server/application/usecases/UpdateTodoStatus'
-import Todo from '#/server/domain/entities/Todo'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
+import Todo, { UpdateTodoStatusInput } from '#/shared/contracts/Todo'
 import UpdateTodoStatusProcedure from './UpdateTodoStatusProcedure'
 
 describe('UpdateTodoStatusProcedure', () => {
@@ -41,7 +40,7 @@ describe('UpdateTodoStatusProcedure', () => {
   it('updateStatus: returns the updated Todo when the repository succeeds', async () => {
     const result = await callUpdateTodoStatus(SuccessRuntime.runPromise)
 
-    expect(result).toBe(expectedTodo)
+    expect(result).toStrictEqual(expectedTodo)
   })
 
   const notFoundError = TodoNotFoundError.make({ id: expectedTodo.id })

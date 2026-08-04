@@ -1,7 +1,7 @@
 import * as Context from 'effect/Context'
 import * as Effect from 'effect/Effect'
 import * as Schema from 'effect/Schema'
-import { TodoId, type TTodo } from '#/server/domain/entities/Todo'
+import { TodoId, type TTodo } from '#/shared/contracts/Todo'
 
 export class TodoRepositoryError extends Schema.TaggedErrorClass<TodoRepositoryError>()(
   'TodoRepositoryError',

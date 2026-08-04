@@ -7,7 +7,7 @@ import TodoRepository, {
   TodoNotFoundError,
   TodoRepositoryError,
 } from '#/server/application/repositories/TodoRepository'
-import Todo from '#/server/domain/entities/Todo'
+import Todo from '#/shared/contracts/Todo'
 import UpdateTodoStatus from './UpdateTodoStatus'
 
 describe('UpdateTodoStatus', () => {

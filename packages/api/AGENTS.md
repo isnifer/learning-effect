@@ -21,8 +21,10 @@ typing.
 
 ## Package rules
 
+- [Organize application components](.agents/rules/components.md)
 - [Reuse domain literal schemas across outer layers](.agents/rules/domain-literal-schemas.md)
 - [Name oRPC routers by entity and repository operation](.agents/rules/orpc-router-naming.md)
+- [Place each schema-derived type next to its schema](.agents/rules/schema-derived-type-placement.md)
 - [Prefer truthiness checks for absent values](.agents/rules/truthiness-checks.md)
 
 ## Architecture
