@@ -41,10 +41,10 @@ Forge writes both outputs to `packages/api/out`.
 ## Verification
 
 ```bash
-pnpm --filter api typecheck
-pnpm --filter api test
-pnpm --filter api build
-pnpm --filter api start
+pnpm --filter red-docket typecheck
+pnpm --filter red-docket test
+pnpm --filter red-docket build
+pnpm --filter red-docket start
 ```
 
 ## Database schema
@@ -52,7 +52,7 @@ pnpm --filter api start
 Generate a migration after changing the Drizzle schema:
 
 ```bash
-pnpm --filter api db:generate
+pnpm --filter red-docket db:generate
 ```
 
 ## Routing
@@ -61,5 +61,5 @@ The renderer uses TanStack Router with file-based routes in `src/routes`. Regene
 with:
 
 ```bash
-pnpm --filter api generate-routes
+pnpm --filter red-docket generate-routes
 ```

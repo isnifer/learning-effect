@@ -9,6 +9,7 @@ const betterSqlite3Directory = dirname(require.resolve('better-sqlite3/package.j
 const config = {
   packagerConfig: {
     name: 'Red Docket',
+    appBundleId: 'app.reddocket.desktop',
     asar: true,
     extraResource: ['migrations'],
   },

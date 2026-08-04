@@ -1,5 +1,5 @@
 {
-  "name": "red-docket",
+  "name": "red-docket-workspace",
   "version": "1.0.0",
   "private": true,
   "description": "",
@@ -8,11 +8,11 @@
   "author": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm --filter api dev",
+    "dev": "pnpm --filter red-docket dev",
     "build": "pnpm --recursive build",
-    "electron:dev": "pnpm --filter api electron:dev",
-    "electron:package": "pnpm --filter api electron:package",
-    "electron:make": "pnpm --filter api electron:make",
+    "electron:dev": "pnpm --filter red-docket electron:dev",
+    "electron:package": "pnpm --filter red-docket electron:package",
+    "electron:make": "pnpm --filter red-docket electron:make",
     "prepare": "./scripts/prepare-effect.sh",
     "test": "pnpm --recursive --if-present test"
   },
