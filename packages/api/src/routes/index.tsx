@@ -3,70 +3,71 @@ import * as Schema from 'effect/Schema'
 import { ListTodoIcon } from 'lucide-react'
 import { useState } from 'react'
 import Empty from '#/components/Empty'
-import FormCreateTask from '#/components/FormCreateTask'
-import FormUpdateTaskTitle from '#/components/FormUpdateTaskTitle'
+import FormCreateTicket from '#/components/FormCreateTicket'
+import FormUpdateTicketTitle from '#/components/FormUpdateTicketTitle'
 import Select from '#/components/Select'
-import SkeletonTaskList from '#/components/SkeletonTaskList'
+import SkeletonTicketList from '#/components/SkeletonTicketList'
 import { Button } from '#/components/ui/button'
 import { Card, CardContent, CardFooter } from '#/components/ui/card'
 import { Item, ItemActions, ItemContent, ItemGroup, ItemSeparator } from '#/components/ui/item'
 import { Tabs, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import {
-  TASK_FILTER_OPTIONS,
-  TASK_STATUS_OPTIONS,
-  TASK_STATUS_PRESENTATION,
-  TaskFilter,
-  type TTaskFilter,
-} from '#/constants/task'
+  TICKET_FILTER_OPTIONS,
+  TICKET_STATUS_OPTIONS,
+  TICKET_STATUS_PRESENTATION,
+  TicketFilter,
+  type TTicketFilter,
+} from '#/constants/ticket'
 import {
-  useCreateTask,
-  useTasksQuery,
-  useUpdateTaskStatus,
-  useUpdateTaskTitle,
-} from '#/store/queries/taskQueries'
+  useCreateTicket,
+  useTicketsQuery,
+  useUpdateTicketStatus,
+  useUpdateTicketTitle,
+} from '#/store/queries/ticketQueries'
 
-export const Route = createFileRoute('/')({ component: TaskScreen })
+export const Route = createFileRoute('/')({ component: TicketScreen })
 
-function TaskScreen() {
-  const [filter, setFilter] = useState<TTaskFilter>('ALL')
-  const tasksQuery = useTasksQuery()
-  const createTask = useCreateTask()
-  const updateTaskStatus = useUpdateTaskStatus()
-  const updateTaskTitle = useUpdateTaskTitle()
+function TicketScreen() {
+  const [filter, setFilter] = useState<TTicketFilter>('ALL')
+  const ticketsQuery = useTicketsQuery()
+  const createTicket = useCreateTicket()
+  const updateTicketStatus = useUpdateTicketStatus()
+  const updateTicketTitle = useUpdateTicketTitle()
 
-  const tasks = tasksQuery.data ?? []
-  const visibleTasks = filter === 'ALL' ? tasks : tasks.filter(task => task.status === filter)
-  const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length
+  const tickets = ticketsQuery.data ?? []
+  const visibleTickets =
+    filter === 'ALL' ? tickets : tickets.filter(ticket => ticket.status === filter)
+  const completedTickets = tickets.filter(ticket => ticket.status === 'COMPLETED').length
 
   return (
     <main className="bg-background text-foreground min-h-screen px-4 py-10 sm:px-6">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header>
-          <h1 className="text-3xl font-semibold tracking-tight">Tasks</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Tickets</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            {completedTasks} of {tasks.length} tasks completed
+            {completedTickets} of {tickets.length} tickets completed
           </p>
         </header>
 
         <Card>
           <CardContent className="flex flex-col gap-6">
-            <FormCreateTask
-              isPending={createTask.isPending}
-              error={createTask.error}
-              onCreate={input => createTask.mutateAsync(input)}
+            <FormCreateTicket
+              isPending={createTicket.isPending}
+              error={createTicket.error}
+              onCreate={input => createTicket.mutateAsync(input)}
             />
 
             <Tabs
               selectedKey={filter}
               onSelectionChange={key => {
-                const selectedFilter = Schema.decodeUnknownOption(TaskFilter)(key)
+                const selectedFilter = Schema.decodeUnknownOption(TicketFilter)(key)
 
                 if (selectedFilter._tag === 'Some') {
                   setFilter(selectedFilter.value)
                 }
               }}>
-              <TabsList aria-label="Filter tasks">
-                {TASK_FILTER_OPTIONS.map(option => (
+              <TabsList aria-label="Filter tickets">
+                {TICKET_FILTER_OPTIONS.map(option => (
                   <TabsTrigger key={option.value} id={option.value}>
                     {option.label}
                   </TabsTrigger>
@@ -74,64 +75,68 @@ function TaskScreen() {
               </TabsList>
             </Tabs>
 
-            {tasksQuery.isPending && <SkeletonTaskList />}
+            {ticketsQuery.isPending && <SkeletonTicketList />}
 
-            {tasksQuery.isError && (
+            {ticketsQuery.isError && (
               <Empty
                 icon={<ListTodoIcon />}
-                title="Could not load tasks"
+                title="Could not load tickets"
                 description="The request failed. Try loading the list again."
                 action={
-                  <Button variant="outline" onPress={() => tasksQuery.refetch()}>
+                  <Button variant="outline" onPress={() => ticketsQuery.refetch()}>
                     Try again
                   </Button>
                 }
               />
             )}
 
-            {tasksQuery.isSuccess && visibleTasks.length === 0 && (
+            {ticketsQuery.isSuccess && visibleTickets.length === 0 && (
               <Empty
                 icon={<ListTodoIcon />}
-                title={tasks.length === 0 ? 'No tasks yet' : 'No matching tasks'}
+                title={tickets.length === 0 ? 'No tickets yet' : 'No matching tickets'}
                 description={
-                  tasks.length === 0
-                    ? 'Add the first task using the form above.'
-                    : 'Choose another status to see more tasks.'
+                  tickets.length === 0
+                    ? 'Add the first ticket using the form above.'
+                    : 'Choose another status to see more tickets.'
                 }
               />
             )}
 
-            {tasksQuery.isSuccess && visibleTasks.length > 0 && (
+            {ticketsQuery.isSuccess && visibleTickets.length > 0 && (
               <ItemGroup className="gap-0">
-                {visibleTasks.map((task, index) => (
-                  <div key={task.id}>
+                {visibleTickets.map((ticket, index) => (
+                  <div key={ticket.id}>
                     {index > 0 && <ItemSeparator className="my-0" />}
                     <Item className="rounded-none px-0 py-4">
                       <ItemContent>
-                        <FormUpdateTaskTitle
-                          task={task}
+                        <FormUpdateTicketTitle
+                          ticket={ticket}
                           isPending={
-                            updateTaskTitle.isPending && updateTaskTitle.variables?.id === task.id
+                            updateTicketTitle.isPending &&
+                            updateTicketTitle.variables?.id === ticket.id
                           }
                           error={
-                            updateTaskTitle.variables?.id === task.id ? updateTaskTitle.error : null
+                            updateTicketTitle.variables?.id === ticket.id
+                              ? updateTicketTitle.error
+                              : null
                           }
-                          onUpdate={input => updateTaskTitle.mutateAsync(input)}
+                          onUpdate={input => updateTicketTitle.mutateAsync(input)}
                         />
                       </ItemContent>
                       <ItemActions className="w-full justify-end sm:w-auto">
                         <Select
-                          ariaLabel={`Change status for ${task.title}`}
-                          value={task.status}
-                          options={TASK_STATUS_OPTIONS}
+                          ariaLabel={`Change status for ${ticket.title}`}
+                          value={ticket.status}
+                          options={TICKET_STATUS_OPTIONS}
                           isDisabled={
-                            updateTaskStatus.isPending && updateTaskStatus.variables?.id === task.id
+                            updateTicketStatus.isPending &&
+                            updateTicketStatus.variables?.id === ticket.id
                           }
-                          variant={TASK_STATUS_PRESENTATION[task.status].variant}
+                          variant={TICKET_STATUS_PRESENTATION[ticket.status].variant}
                           triggerClassName="w-32"
                           onChange={status => {
-                            if (status !== task.status) {
-                              updateTaskStatus.mutate({ id: task.id, status })
+                            if (status !== ticket.status) {
+                              updateTicketStatus.mutate({ id: ticket.id, status })
                             }
                           }}
                         />
@@ -142,15 +147,15 @@ function TaskScreen() {
               </ItemGroup>
             )}
 
-            {updateTaskStatus.isError && (
+            {updateTicketStatus.isError && (
               <p role="alert" className="text-destructive text-sm">
-                Could not update the task status. Try again.
+                Could not update the ticket status. Try again.
               </p>
             )}
           </CardContent>
 
           <CardFooter className="text-muted-foreground text-sm">
-            Showing {visibleTasks.length} of {tasks.length} tasks
+            Showing {visibleTickets.length} of {tickets.length} tickets
           </CardFooter>
         </Card>
       </div>

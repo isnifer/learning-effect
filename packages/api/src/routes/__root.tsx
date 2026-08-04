@@ -11,7 +11,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Tasks' },
+      { title: 'Tickets' },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
   }),

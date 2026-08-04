@@ -4,8 +4,8 @@ Place a TypeScript type derived from an Effect runtime schema immediately after 
 references.
 
 ```ts
-export const CreateTaskInput = Task.mapFields(Struct.pick(['title']))
-export type TCreateTaskInput = typeof CreateTaskInput.Type
+export const CreateTicketInput = Ticket.mapFields(Struct.pick(['title']))
+export type TCreateTicketInput = typeof CreateTicketInput.Type
 ```
 
 Do not collect schema-derived types into a separate block elsewhere in the module.

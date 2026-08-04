@@ -1,11 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "ad518b4c-decb-42b4-842f-5a997112f26f",
+  "id": "fd2c0f26-54cb-4465-a7cb-5654b8c922dc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "tasks": {
-      "name": "tasks",
+    "tickets": {
+      "name": "tickets",
       "columns": {
         "id": {
           "name": "id",
@@ -42,9 +42,9 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {
-        "tasks_status_check": {
-          "name": "tasks_status_check",
-          "value": "\"tasks\".\"status\" in ('TODO', 'IN_PROGRESS', 'COMPLETED')"
+        "tickets_status_check": {
+          "name": "tickets_status_check",
+          "value": "\"tickets\".\"status\" in ('TODO', 'IN_PROGRESS', 'COMPLETED')"
         }
       }
     }

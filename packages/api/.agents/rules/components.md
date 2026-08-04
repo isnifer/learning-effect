@@ -36,8 +36,8 @@ been migrated.
 The component name must use PascalCase and match the file name.
 
 Put a component's UI kind at the beginning of its name so components of the same kind sort together.
-For example, use `FormCreateTask`, `DialogCreateTask`, and `SkeletonTaskList` instead of
-`CreateTaskForm`, `CreateTaskDialog`, and `TaskListSkeleton`.
+For example, use `FormCreateTicket`, `DialogCreateTicket`, and `SkeletonTicketList` instead of
+`CreateTicketForm`, `CreateTicketDialog`, and `TicketListSkeleton`.
 
 Within a feature directory, place component directories directly under the
 feature root. Do not introduce generic organizational layers such as

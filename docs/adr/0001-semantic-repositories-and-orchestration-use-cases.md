@@ -26,7 +26,7 @@ Repository implementations also perform the role described by [Data Mapper](http
 - Interface adapters such as oRPC receive domain results from use cases and encode or map them into transport responses.
 - A separate DAO or mapper is introduced only when it hides real complexity or enables reuse. A repository implementation may call Drizzle directly.
 
-For `CreateTask`, `TaskRepository.create` owns the postconditions that the returned entity has a UUIDv7 identifier, initial `TODO` status, a UTC creation time, and has been persisted. `CreateTask` remains the orchestration entry point and can later coordinate authorization, transactions, other repositories, or domain operations without changing the interface adapter.
+For `CreateTicket`, `TicketRepository.create` owns the postconditions that the returned entity has a UUIDv7 identifier, initial `TODO` status, a UTC creation time, and has been persisted. `CreateTicket` remains the orchestration entry point and can later coordinate authorization, transactions, other repositories, or domain operations without changing the interface adapter.
 
 ## Consequences
 
@@ -35,4 +35,4 @@ For `CreateTask`, `TaskRepository.create` owns the postconditions that the retur
 - Moving from D1 to PostgreSQL should primarily change migrations and infrastructure implementations. The use-case and domain contracts remain stable when the new adapter preserves the same repository semantics.
 - If creation develops rules that are independent of persistence, those rules move into domain operations or the use case. They must not remain hidden inside a repository merely because creation started there.
 
-The field-generation alternatives and D1/PostgreSQL trade-offs are documented in [Responsibility for `Task` system fields](../research/uuid-generation-responsibility.md).
+The field-generation alternatives and D1/PostgreSQL trade-offs are documented in [Responsibility for `Ticket` system fields](../research/uuid-generation-responsibility.md).

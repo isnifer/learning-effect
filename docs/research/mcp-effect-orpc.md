@@ -2,7 +2,7 @@
 
 Status: researched on 2026-08-04.
 
-Scope: expose the current task application to local MCP clients through a Streamable HTTP endpoint
+Scope: expose the current ticket application to local MCP clients through a Streamable HTTP endpoint
 served by the existing Cloudflare Worker under `wrangler dev`. Remote deployment, authorization,
 protocol sessions, and MCP Tasks are outside the first iteration.
 
@@ -12,17 +12,17 @@ Add a stateless `/mcp` entrypoint to the existing Worker with the official
 [`@modelcontextprotocol/server`](https://github.com/modelcontextprotocol/typescript-sdk) v2 SDK.
 Register four tools:
 
-- `task.create`
-- `task.getAll`
-- `task.updateStatus`
-- `task.updateTitle`
+- `ticket.create`
+- `ticket.getAll`
+- `ticket.updateStatus`
+- `ticket.updateTitle`
 
 The MCP entrypoint and the existing oRPC entrypoint should be peer adapters. Both should call the
 same application use cases. MCP should not call an oRPC procedure inside the same process.
 
 ```text
 Browser -> oRPC procedure --+
-                            +-> use case -> TaskRepository -> D1 adapter -> D1
+                            +-> use case -> TicketRepository -> D1 adapter -> D1
 Agent   -> MCP tool --------+
 ```
 
@@ -50,7 +50,7 @@ to bridge that version gap. Expose the four explicit tools through SDK v2 now. R
 change the shared Effect use cases or repository layer.
 
 The first iteration should run only through `wrangler dev` on loopback. It does not need OAuth,
-sessions, elicitation, or the Tasks extension. The current task operations are short synchronous
+sessions, elicitation, or the Tasks extension. The current ticket operations are short synchronous
 database mutations, so an ordinary `tools/call` result is the correct protocol shape.
 
 ## Why the official TypeScript SDK is the best transport adapter today
@@ -107,13 +107,13 @@ transport is an outer adapter.
 
 ## oRPC integration boundary
 
-The existing router exposes the same four operations under `task`:
+The existing router exposes the same four operations under `ticket`:
 
-- [`TaskRouter.ts`](../../packages/api/src/server/entrypoints/orpc/TaskRouter.ts)
-- [`CreateTaskProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/CreateTaskProcedure.ts)
-- [`GetTasksProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/GetTasksProcedure.ts)
-- [`UpdateTaskStatusProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/UpdateTaskStatusProcedure.ts)
-- [`UpdateTaskTitleProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/UpdateTaskTitleProcedure.ts)
+- [`TicketRouter.ts`](../../packages/api/src/server/entrypoints/orpc/TicketRouter.ts)
+- [`CreateTicketProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/CreateTicketProcedure.ts)
+- [`GetTicketsProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/GetTicketsProcedure.ts)
+- [`UpdateTicketStatusProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/UpdateTicketStatusProcedure.ts)
+- [`UpdateTicketTitleProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/UpdateTicketTitleProcedure.ts)
 
 No first-party MCP integration was found in the oRPC documentation or repository. A generated
 oRPC-to-MCP bridge is also not desirable for this slice. oRPC procedures contain oRPC-specific error
@@ -123,7 +123,7 @@ explicit safety decision.
 
 Reuse these elements instead:
 
-- shared Effect schemas from [`Task.ts`](../../packages/api/src/shared/contracts/Task.ts);
+- shared Effect schemas from [`Ticket.ts`](../../packages/api/src/shared/contracts/Ticket.ts);
 - application use cases from `server/application/usecases`;
 - `AppRuntime.runPromise` as the runtime boundary;
 - typed domain and repository errors before mapping them to MCP results.
@@ -135,7 +135,7 @@ Effect error -> ORPCError          at the oRPC adapter
 Effect error -> MCP tool result    at the MCP adapter
 ```
 
-For `TaskNotFoundError`, the MCP result should use `isError: true` with an actionable message that
+For `TicketNotFoundError`, the MCP result should use `isError: true` with an actionable message that
 lets the model correct the ID or refresh the list. Repository failures should return a stable generic
 message and retain the original cause only in server logs. The current specification distinguishes
 request/protocol errors from actionable tool-execution errors and recommends the latter for business
@@ -146,7 +146,7 @@ logic and API failures
 
 Each successful tool should return both:
 
-- `structuredContent` containing the encoded `Task` or `Tasks` value;
+- `structuredContent` containing the encoded `Ticket` or `Tickets` value;
 - a short text content block for clients that still rely on text.
 
 The specification permits any JSON value in `structuredContent` and requires it to conform to the
@@ -155,12 +155,12 @@ declared `outputSchema`; clients should validate it
 
 Suggested annotations:
 
-| Tool                | `readOnlyHint` | `destructiveHint` | `idempotentHint` | Reason                                               |
-| ------------------- | -------------- | ----------------- | ---------------- | ---------------------------------------------------- |
-| `task.getAll`       | `true`         | `false`           | `true`           | Reads state only.                                    |
-| `task.create`       | `false`        | `false`           | `false`          | Repeating it creates another task.                   |
-| `task.updateStatus` | `false`        | `false`           | `true`           | Repeating the same target state has the same result. |
-| `task.updateTitle`  | `false`        | `false`           | `true`           | Repeating the same title has the same result.        |
+| Tool                  | `readOnlyHint` | `destructiveHint` | `idempotentHint` | Reason                                               |
+| --------------------- | -------------- | ----------------- | ---------------- | ---------------------------------------------------- |
+| `ticket.getAll`       | `true`         | `false`           | `true`           | Reads state only.                                    |
+| `ticket.create`       | `false`        | `false`           | `false`          | Repeating it creates another ticket.                 |
+| `ticket.updateStatus` | `false`        | `false`           | `true`           | Repeating the same target state has the same result. |
+| `ticket.updateTitle`  | `false`        | `false`           | `true`           | Repeating the same title has the same result.        |
 
 Annotations are hints, not authorization controls. Clients must treat them as untrusted unless the
 server is trusted
@@ -195,7 +195,7 @@ for human approval.
 Elicitation supports form and URL modes through Multi Round-Trip Requests. Form mode must not carry
 passwords, tokens, payment credentials, or other secrets; URL mode is required for sensitive flows
 ([elicitation specification](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)).
-The first task tools do not need elicitation because their inputs are already complete.
+The first ticket tools do not need elicitation because their inputs are already complete.
 
 ## Local implementation shape
 
@@ -224,8 +224,8 @@ and remote deployment remain a separate decision.
 - Run the official MCP Inspector against `http://127.0.0.1:<port>/mcp` and call all four tools.
 - Verify that `tools/list` exposes deterministic tool order, input/output schemas, and annotations.
 - Verify that invalid schema input never reaches a use case.
-- Verify that a tool-created task appears in the browser and that browser changes are visible through
-  `task.getAll`.
+- Verify that a tool-created ticket appears in the browser and that browser changes are visible through
+  `ticket.getAll`.
 
 The official TypeScript SDK guide uses MCP Inspector for manual server verification
 ([first-server guide](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/get-started/first-server.md)).
@@ -237,5 +237,5 @@ The official MCP conformance suite can be added after the initial slice
 Use the official MCP TypeScript SDK v2 for the current protocol and Cloudflare-compatible transport.
 Use Effect for schemas, use cases, typed errors, dependency injection, and runtime execution. Keep
 oRPC and MCP as separate entrypoint adapters over the same application layer. Start with a local,
-stateless `/mcp` endpoint and four synchronous task tools. Reconsider Effect's native MCP server when
+stateless `/mcp` endpoint and four synchronous ticket tools. Reconsider Effect's native MCP server when
 it supports `2026-07-28`.

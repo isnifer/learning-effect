@@ -2,7 +2,8 @@
 
 ## Contexts
 
-- [Task management](packages/api/CONTEXT.md) — organizes personal projects and tracks Tasks.
+- [Ticket management](packages/api/CONTEXT.md) — tracks Tickets using Matt Pocock Skills terminology
+  and process semantics.
   - [Package instructions](packages/api/AGENTS.md)
   - [Package-local rules](packages/api/.agents)
 

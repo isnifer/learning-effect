@@ -1,7 +1,7 @@
-import TaskRouter from './TaskRouter'
+import TicketRouter from './TicketRouter'
 
 const OrpcRouter = {
-  task: TaskRouter,
+  ticket: TicketRouter,
 }
 
 export default OrpcRouter
