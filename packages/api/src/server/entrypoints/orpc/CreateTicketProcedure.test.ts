@@ -17,6 +17,7 @@ import CreateTicketProcedure from './CreateTicketProcedure'
 describe('CreateTicketProcedure', () => {
   const expectedTicket = Schema.decodeUnknownSync(Ticket)({
     id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
+    projectId: '019fcc1a-bd5d-751e-9a30-0bc92d133b29',
     title: 'Test Ticket',
     status: 'TODO',
     createdAt: 1785835769172,
@@ -25,7 +26,7 @@ describe('CreateTicketProcedure', () => {
   const callCreateTicket = (runPromise: AppRunPromise) =>
     call(
       CreateTicketProcedure,
-      { title: expectedTicket.title },
+      { projectId: expectedTicket.projectId, title: expectedTicket.title },
       {
         context: { runPromise },
       }

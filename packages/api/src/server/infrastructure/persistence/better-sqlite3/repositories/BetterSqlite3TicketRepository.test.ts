@@ -8,12 +8,16 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import { TestClock } from 'effect/testing'
+import ProjectRepository from '#/server/application/repositories/ProjectRepository'
 import TicketRepository, {
   TicketNotFoundError,
+  TicketRepositoryError,
 } from '#/server/application/repositories/TicketRepository'
+import { ProjectId, ProjectKey, ProjectName } from '#/shared/contracts/Project'
 import { TicketId, TicketTitle } from '#/shared/contracts/Ticket'
 import * as schema from '../../sqlite/schema'
 import BetterSqlite3Client from '../client/BetterSqlite3Client'
+import BetterSqlite3ProjectRepository from './BetterSqlite3ProjectRepository'
 import BetterSqlite3TicketRepository from './BetterSqlite3TicketRepository'
 
 const migrationsFolder = fileURLToPath(new URL('../../../../../../migrations', import.meta.url))
@@ -25,40 +29,66 @@ describe('BetterSqlite3TicketRepository', () => {
     BetterSqlite3Client.fromDatabase(database),
     BrowserCrypto.layer
   )
-  const BetterSqlite3TicketRepositoryTest = Layer.provide(
-    BetterSqlite3TicketRepository,
+  const BetterSqlite3RepositoriesTest = Layer.provide(
+    Layer.mergeAll(BetterSqlite3ProjectRepository, BetterSqlite3TicketRepository),
     InfrastructureTest
   )
 
   migrate(client, { migrationsFolder })
 
   beforeEach(() => {
-    database.exec('DELETE FROM tickets')
+    database.exec('DELETE FROM tickets; DELETE FROM project_directories; DELETE FROM projects')
   })
   afterAll(() => database.close())
 
-  layer(BetterSqlite3TicketRepositoryTest)(it => {
+  layer(BetterSqlite3RepositoriesTest)(it => {
     it.effect('create: inserts and returns a Ticket', () =>
       Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
         const ticketRepository = yield* TicketRepository
-
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
         const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Test')
-        const createdTicket = yield* ticketRepository.create({ title: ticketTitle })
+        const createdTicket = yield* ticketRepository.create({
+          projectId: project.id,
+          title: ticketTitle,
+        })
 
+        expect(createdTicket.projectId).toBe(project.id)
         expect(createdTicket.title).toEqual('Test')
+      })
+    )
+
+    it.effect('create: fails with TicketRepositoryError when the Project does not exist', () =>
+      Effect.gen(function* () {
+        const ticketRepository = yield* TicketRepository
+        const projectId = yield* Schema.decodeEffect(ProjectId)(
+          '019fcc1a-bd5d-751e-9a30-0bc92d133b31'
+        )
+        const title = yield* Schema.decodeEffect(TicketTitle)('Test')
+
+        const error = yield* ticketRepository.create({ projectId, title }).pipe(Effect.flip)
+
+        expect(error).toBeInstanceOf(TicketRepositoryError)
+        expect(error.operation).toBe('create')
       })
     )
 
     it.effect('getAll: orders status groups and then UUIDv7 descending', () =>
       Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
         const ticketRepository = yield* TicketRepository
-
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
         const olderInProgressTitle = yield* Schema.decodeEffect(TicketTitle)('Older In Progress')
         const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Ticket')
         const newerInProgressTitle = yield* Schema.decodeEffect(TicketTitle)('Newer In Progress')
         const completedTitle = yield* Schema.decodeEffect(TicketTitle)('Completed')
 
         const olderInProgressTicket = yield* ticketRepository.create({
+          projectId: project.id,
           title: olderInProgressTitle,
         })
         const olderInProgress = yield* ticketRepository.updateStatus({
@@ -67,10 +97,11 @@ describe('BetterSqlite3TicketRepository', () => {
         })
 
         yield* TestClock.adjust('1 millis')
-        const ticket = yield* ticketRepository.create({ title: ticketTitle })
+        const ticket = yield* ticketRepository.create({ projectId: project.id, title: ticketTitle })
 
         yield* TestClock.adjust('1 millis')
         const newerInProgressTicket = yield* ticketRepository.create({
+          projectId: project.id,
           title: newerInProgressTitle,
         })
         const newerInProgress = yield* ticketRepository.updateStatus({
@@ -79,7 +110,10 @@ describe('BetterSqlite3TicketRepository', () => {
         })
 
         yield* TestClock.adjust('1 millis')
-        const completedTicket = yield* ticketRepository.create({ title: completedTitle })
+        const completedTicket = yield* ticketRepository.create({
+          projectId: project.id,
+          title: completedTitle,
+        })
         const completed = yield* ticketRepository.updateStatus({
           id: completedTicket.id,
           status: 'COMPLETED',
@@ -94,10 +128,16 @@ describe('BetterSqlite3TicketRepository', () => {
 
     it.effect('updateStatus: updates and returns a Ticket', () =>
       Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
         const ticketRepository = yield* TicketRepository
-
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
         const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Updated Ticket')
-        const createdTicket = yield* ticketRepository.create({ title: ticketTitle })
+        const createdTicket = yield* ticketRepository.create({
+          projectId: project.id,
+          title: ticketTitle,
+        })
         const updatedTicket = yield* ticketRepository.updateStatus({
           id: createdTicket.id,
           status: 'COMPLETED',
@@ -127,11 +167,17 @@ describe('BetterSqlite3TicketRepository', () => {
 
     it.effect('updateTitle: updates and returns a Ticket', () =>
       Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
         const ticketRepository = yield* TicketRepository
-
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
         const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Original Ticket')
         const updatedTicketTitle = yield* Schema.decodeEffect(TicketTitle)('Updated Ticket')
-        const createdTicket = yield* ticketRepository.create({ title: ticketTitle })
+        const createdTicket = yield* ticketRepository.create({
+          projectId: project.id,
+          title: ticketTitle,
+        })
         const updatedTicket = yield* ticketRepository.updateTitle({
           id: createdTicket.id,
           title: updatedTicketTitle,

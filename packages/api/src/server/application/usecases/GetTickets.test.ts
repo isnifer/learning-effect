@@ -11,12 +11,14 @@ describe('GetTickets', () => {
   const expectedTickets = Schema.decodeUnknownSync(Schema.Array(Ticket))([
     {
       id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
+      projectId: '019fcc1a-bd5d-751e-9a30-0bc92d133b29',
       title: 'First Ticket',
       status: 'TODO',
       createdAt: 1785835769172,
     },
     {
       id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2b',
+      projectId: '019fcc1a-bd5d-751e-9a30-0bc92d133b29',
       title: 'Second Ticket',
       status: 'IN_PROGRESS',
       createdAt: 1785835769173,

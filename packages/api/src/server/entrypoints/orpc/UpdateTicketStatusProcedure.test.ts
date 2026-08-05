@@ -18,6 +18,7 @@ import UpdateTicketStatusProcedure from './UpdateTicketStatusProcedure'
 describe('UpdateTicketStatusProcedure', () => {
   const expectedTicket = Schema.decodeUnknownSync(Ticket)({
     id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
+    projectId: '019fcc1a-bd5d-751e-9a30-0bc92d133b29',
     title: 'Test Ticket',
     status: 'COMPLETED',
     createdAt: 1785835769172,

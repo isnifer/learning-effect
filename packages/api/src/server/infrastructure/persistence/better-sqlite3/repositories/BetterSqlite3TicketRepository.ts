@@ -41,6 +41,7 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
               .insert(tickets)
               .values({
                 id,
+                projectId: input.projectId,
                 title: input.title,
                 status: 'TODO',
                 createdAt,

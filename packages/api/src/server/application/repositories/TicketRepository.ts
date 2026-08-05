@@ -22,7 +22,7 @@ export default class TicketRepository extends Context.Service<
   TicketRepository,
   {
     readonly create: (
-      input: Pick<TTicket, 'title'>
+      input: Pick<TTicket, 'projectId' | 'title'>
     ) => Effect.Effect<TTicket, TicketRepositoryError>
     readonly getAll: Effect.Effect<ReadonlyArray<TTicket>, TicketRepositoryError>
     readonly updateStatus: (

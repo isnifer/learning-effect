@@ -1,5 +1,6 @@
 import * as Schema from 'effect/Schema'
 import * as Struct from 'effect/Struct'
+import { ProjectId } from './Project'
 
 export const TicketId = Schema.String.pipe(Schema.check(Schema.isUUID(7)), Schema.brand('TicketId'))
 
@@ -12,13 +13,14 @@ export const TicketStatus = Schema.Literals(['TODO', 'IN_PROGRESS', 'COMPLETED']
 
 const Ticket = Schema.Struct({
   id: TicketId,
+  projectId: ProjectId,
   title: TicketTitle,
   status: TicketStatus,
   createdAt: Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))),
 })
 export type TTicket = typeof Ticket.Type
 
-export const CreateTicketInput = Ticket.mapFields(Struct.pick(['title']))
+export const CreateTicketInput = Ticket.mapFields(Struct.pick(['projectId', 'title']))
 export type TCreateTicketInput = typeof CreateTicketInput.Type
 
 export const UpdateTicketStatusInput = Ticket.mapFields(Struct.pick(['id', 'status']))

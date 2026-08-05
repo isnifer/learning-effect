@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { check, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { TicketStatus } from '#/shared/contracts/Ticket'
+import { projects } from './projects'
 
 const ticketStatusValues = sql
   .join(
@@ -13,6 +14,9 @@ export const tickets = sqliteTable(
   'tickets',
   {
     id: text('id').primaryKey(),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => projects.id),
     title: text('title').notNull(),
     status: text('status', {
       enum: TicketStatus.literals,
