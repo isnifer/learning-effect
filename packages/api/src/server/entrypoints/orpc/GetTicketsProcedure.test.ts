@@ -4,6 +4,8 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
 import * as Schema from 'effect/Schema'
+import ProjectRepository from '#/server/application/repositories/ProjectRepository'
+import ProjectRepositoryStub from '#/server/application/repositories/testing/ProjectRepositoryStub'
 import TicketRepositoryStub from '#/server/application/repositories/testing/TicketRepositoryStub'
 import TicketRepository, {
   TicketRepositoryError,
@@ -37,8 +39,11 @@ describe('GetTicketsProcedure', () => {
     ...TicketRepositoryStub,
     getAll: () => Effect.succeed(expectedTickets),
   })
+  const TestProjectRepository = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
 
-  const SuccessRuntime = ManagedRuntime.make(SucceedingTicketRepository)
+  const SuccessRuntime = ManagedRuntime.make(
+    Layer.mergeAll(TestProjectRepository, SucceedingTicketRepository)
+  )
 
   describe('when the repository succeeds', () => {
     it('getAll: returns Tickets', async () => {
@@ -58,7 +63,9 @@ describe('GetTicketsProcedure', () => {
     getAll: () => Effect.fail(repositoryError),
   })
 
-  const FailureRuntime = ManagedRuntime.make(FailingTicketRepository)
+  const FailureRuntime = ManagedRuntime.make(
+    Layer.mergeAll(TestProjectRepository, FailingTicketRepository)
+  )
 
   describe('when the repository fails', () => {
     it('getAll: maps TicketRepositoryError to INTERNAL_SERVER_ERROR', async () => {

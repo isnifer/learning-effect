@@ -3,6 +3,7 @@ import { BrowserCrypto } from '@effect/platform-browser'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
 import BetterSqlite3Client from '../infrastructure/persistence/better-sqlite3/client/BetterSqlite3Client'
+import BetterSqlite3ProjectRepository from '../infrastructure/persistence/better-sqlite3/repositories/BetterSqlite3ProjectRepository'
 import BetterSqlite3TicketRepository from '../infrastructure/persistence/better-sqlite3/repositories/BetterSqlite3TicketRepository'
 
 const databaseFilename =
@@ -15,7 +16,12 @@ const InfrastructureLive = Layer.mergeAll(
   BrowserCrypto.layer
 )
 
-const AppServicesLive = Layer.provide(BetterSqlite3TicketRepository, InfrastructureLive)
+const AppRepositoriesLive = Layer.mergeAll(
+  BetterSqlite3ProjectRepository,
+  BetterSqlite3TicketRepository
+)
+
+const AppServicesLive = Layer.provide(AppRepositoriesLive, InfrastructureLive)
 
 const AppRuntime = ManagedRuntime.make(AppServicesLive)
 

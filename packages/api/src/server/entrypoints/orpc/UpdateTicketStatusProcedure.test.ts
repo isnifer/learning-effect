@@ -4,6 +4,8 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
 import * as Schema from 'effect/Schema'
+import ProjectRepository from '#/server/application/repositories/ProjectRepository'
+import ProjectRepositoryStub from '#/server/application/repositories/testing/ProjectRepositoryStub'
 import TicketRepositoryStub from '#/server/application/repositories/testing/TicketRepositoryStub'
 import TicketRepository, {
   TicketNotFoundError,
@@ -35,7 +37,10 @@ describe('UpdateTicketStatusProcedure', () => {
     ...TicketRepositoryStub,
     updateStatus: () => Effect.succeed(expectedTicket),
   })
-  const SuccessRuntime = ManagedRuntime.make(SucceedingTicketRepository)
+  const TestProjectRepository = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
+  const SuccessRuntime = ManagedRuntime.make(
+    Layer.mergeAll(TestProjectRepository, SucceedingTicketRepository)
+  )
 
   it('updateStatus: returns the updated Ticket when the repository succeeds', async () => {
     const result = await callUpdateTicketStatus(SuccessRuntime.runPromise)
@@ -48,7 +53,9 @@ describe('UpdateTicketStatusProcedure', () => {
     ...TicketRepositoryStub,
     updateStatus: () => Effect.fail(notFoundError),
   })
-  const MissingTicketRuntime = ManagedRuntime.make(MissingTicketRepository)
+  const MissingTicketRuntime = ManagedRuntime.make(
+    Layer.mergeAll(TestProjectRepository, MissingTicketRepository)
+  )
 
   it('updateStatus: maps TicketNotFoundError to NOT_FOUND', async () => {
     const error = await callUpdateTicketStatus(MissingTicketRuntime.runPromise).catch(
@@ -71,7 +78,9 @@ describe('UpdateTicketStatusProcedure', () => {
     ...TicketRepositoryStub,
     updateStatus: () => Effect.fail(repositoryError),
   })
-  const FailureRuntime = ManagedRuntime.make(FailingTicketRepository)
+  const FailureRuntime = ManagedRuntime.make(
+    Layer.mergeAll(TestProjectRepository, FailingTicketRepository)
+  )
 
   it('updateStatus: maps TicketRepositoryError to INTERNAL_SERVER_ERROR', async () => {
     const error = await callUpdateTicketStatus(FailureRuntime.runPromise).catch(cause => cause)
