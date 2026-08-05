@@ -12,6 +12,10 @@ const CreateTicketProcedure = BaseProcedure.input(Schema.toStandardSchemaV1(Crea
     CreateTicket(input).pipe(
       Effect.catch(
         Match.valueTags({
+          ProjectArchivedError: cause => Effect.fail(new ORPCError('CONFLICT', { cause })),
+          ProjectNotFoundError: cause => Effect.fail(new ORPCError('NOT_FOUND', { cause })),
+          ProjectRepositoryError: cause =>
+            Effect.fail(new ORPCError('INTERNAL_SERVER_ERROR', { cause })),
           TicketRepositoryError: cause =>
             Effect.fail(new ORPCError('INTERNAL_SERVER_ERROR', { cause })),
         })

@@ -5,6 +5,7 @@ const ProjectRepositoryStub: ProjectRepository['Service'] = {
   create: () => Effect.die(new Error('Unexpected ProjectRepository.create')),
   getActive: Effect.die(new Error('Unexpected ProjectRepository.getActive')),
   getById: () => Effect.die(new Error('Unexpected ProjectRepository.getById')),
+  getActiveById: () => Effect.die(new Error('Unexpected ProjectRepository.getActiveById')),
   archive: () => Effect.die(new Error('Unexpected ProjectRepository.archive')),
   restore: () => Effect.die(new Error('Unexpected ProjectRepository.restore')),
   getDirectories: () => Effect.die(new Error('Unexpected ProjectRepository.getDirectories')),

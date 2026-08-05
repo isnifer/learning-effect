@@ -1,9 +1,12 @@
+import Database from 'better-sqlite3'
 import { asc, desc, eq, inArray } from 'drizzle-orm'
+import * as Cause from 'effect/Cause'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
+import { ProjectArchivedError } from '#/server/application/repositories/ProjectRepository'
 import TicketRepository, {
   TicketNotFoundError,
   TicketRepositoryError,
@@ -52,12 +55,18 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
 
           return yield* Schema.decodeEffect(Ticket)(ticketItem)
         }).pipe(
-          Effect.mapError(cause =>
-            TicketRepositoryError.make({
-              operation: 'create',
-              cause,
-            })
-          )
+          Effect.mapError(cause => {
+            const repositoryCause = Cause.isUnknownError(cause) ? cause.cause : cause
+
+            return repositoryCause instanceof Database.SqliteError &&
+              repositoryCause.code === 'SQLITE_CONSTRAINT_TRIGGER' &&
+              repositoryCause.message === 'tickets_project_archived'
+              ? ProjectArchivedError.make({ id: input.projectId })
+              : TicketRepositoryError.make({
+                  operation: 'create',
+                  cause: repositoryCause,
+                })
+          })
         ),
       getAll: Effect.try(() =>
         db

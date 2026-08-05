@@ -1,4 +1,4 @@
-import BetterSqlite3Database from 'better-sqlite3'
+import Database from 'better-sqlite3'
 import { and, asc, desc, eq, exists, isNull, sql } from 'drizzle-orm'
 import * as Cause from 'effect/Cause'
 import * as Clock from 'effect/Clock'
@@ -52,7 +52,7 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           Effect.mapError(cause => {
             const repositoryCause = Cause.isUnknownError(cause) ? cause.cause : cause
 
-            return repositoryCause instanceof BetterSqlite3Database.SqliteError &&
+            return repositoryCause instanceof Database.SqliteError &&
               repositoryCause.code === 'SQLITE_CONSTRAINT_UNIQUE'
               ? ProjectKeyAlreadyExistsError.make({ key: input.key })
               : ProjectRepositoryError.make({
@@ -102,6 +102,38 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
               })
             )
           )
+        }),
+      getActiveById: input =>
+        Effect.gen(function* () {
+          const projectItem = yield* Effect.try(() =>
+            db.select().from(projects).where(eq(projects.id, input.id)).get()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'getActiveById',
+                cause,
+              })
+            )
+          )
+
+          if (!projectItem) {
+            return yield* ProjectNotFoundError.make({ id: input.id })
+          }
+
+          const project = yield* Schema.decodeEffect(Project)(projectItem).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'getActiveById',
+                cause,
+              })
+            )
+          )
+
+          if (typeof project.archivedAt === 'number') {
+            return yield* ProjectArchivedError.make({ id: project.id })
+          }
+
+          return project
         }),
       archive: input =>
         Effect.gen(function* () {

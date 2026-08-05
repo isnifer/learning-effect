@@ -59,6 +59,12 @@ export default class ProjectRepository extends Context.Service<
     readonly getById: (
       input: Pick<TProject, 'id'>
     ) => Effect.Effect<TProject, ProjectNotFoundError | ProjectRepositoryError>
+    readonly getActiveById: (
+      input: Pick<TProject, 'id'>
+    ) => Effect.Effect<
+      TProject,
+      ProjectArchivedError | ProjectNotFoundError | ProjectRepositoryError
+    >
     readonly archive: (
       input: Pick<TProject, 'id'>
     ) => Effect.Effect<TProject, ProjectNotFoundError | ProjectRepositoryError>

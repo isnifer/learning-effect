@@ -8,7 +8,9 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import { TestClock } from 'effect/testing'
-import ProjectRepository from '#/server/application/repositories/ProjectRepository'
+import ProjectRepository, {
+  ProjectArchivedError,
+} from '#/server/application/repositories/ProjectRepository'
 import TicketRepository, {
   TicketNotFoundError,
   TicketRepositoryError,
@@ -70,8 +72,31 @@ describe('BetterSqlite3TicketRepository', () => {
 
         const error = yield* ticketRepository.create({ projectId, title }).pipe(Effect.flip)
 
-        expect(error).toBeInstanceOf(TicketRepositoryError)
+        if (!(error instanceof TicketRepositoryError)) {
+          throw error
+        }
+
         expect(error.operation).toBe('create')
+      })
+    )
+
+    it.effect('create: does not insert a Ticket when the Project is archived', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const ticketRepository = yield* TicketRepository
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        yield* projectRepository.archive({ id: project.id })
+        const title = yield* Schema.decodeEffect(TicketTitle)('Test')
+
+        const error = yield* ticketRepository
+          .create({ projectId: project.id, title })
+          .pipe(Effect.flip)
+        const ticketItems = client.select().from(schema.tickets).all()
+
+        expect(error).toStrictEqual(ProjectArchivedError.make({ id: project.id }))
+        expect(ticketItems).toStrictEqual([])
       })
     )
 

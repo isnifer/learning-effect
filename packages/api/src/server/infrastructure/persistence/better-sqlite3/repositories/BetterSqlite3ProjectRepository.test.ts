@@ -131,6 +131,48 @@ describe('BetterSqlite3ProjectRepository', () => {
       })
     )
 
+    it.effect('getActiveById: returns an active Project', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+
+        const result = yield* projectRepository.getActiveById({ id: project.id })
+
+        expect(result).toStrictEqual(project)
+      })
+    )
+
+    it.effect('getActiveById: fails with ProjectArchivedError when the Project is archived', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+        const archivedProject = yield* projectRepository.archive({ id: project.id })
+
+        const error = yield* projectRepository
+          .getActiveById({ id: archivedProject.id })
+          .pipe(Effect.flip)
+
+        expect(error).toStrictEqual(ProjectArchivedError.make({ id: archivedProject.id }))
+      })
+    )
+
+    it.effect(
+      'getActiveById: fails with ProjectNotFoundError when the Project does not exist',
+      () =>
+        Effect.gen(function* () {
+          const projectRepository = yield* ProjectRepository
+          const id = yield* Schema.decodeEffect(ProjectId)('019fcc1a-bd5d-751e-9a30-0bc92d133b31')
+
+          const error = yield* projectRepository.getActiveById({ id }).pipe(Effect.flip)
+
+          expect(error).toStrictEqual(ProjectNotFoundError.make({ id }))
+        })
+    )
+
     it.effect('archive: archives and returns a Project', () =>
       Effect.gen(function* () {
         const projectRepository = yield* ProjectRepository

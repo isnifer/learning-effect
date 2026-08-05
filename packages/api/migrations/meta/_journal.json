@@ -29,6 +29,13 @@
       "when": 1785935657275,
       "tag": "0003_amazing_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1785940473945,
+      "tag": "0004_prevent_archived_project_ticket_creation",
+      "breakpoints": true
     }
   ]
 }
