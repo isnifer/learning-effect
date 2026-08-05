@@ -311,5 +311,37 @@ describe('BetterSqlite3TicketRepository', () => {
         expect(error).toStrictEqual(TicketNotFoundError.make({ id }))
       })
     )
+
+    it.effect('updateTitle: fails with ProjectArchivedError without updating the Ticket', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const ticketRepository = yield* TicketRepository
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({
+          name: projectName,
+          key: projectKey,
+        })
+        const originalTitle = yield* Schema.decodeEffect(TicketTitle)('Original Ticket')
+        const updatedTitle = yield* Schema.decodeEffect(TicketTitle)('Updated Ticket')
+        const createdTicket = yield* ticketRepository.create({
+          projectId: project.id,
+          title: originalTitle,
+        })
+        yield* projectRepository.archive({ id: project.id })
+
+        const error = yield* ticketRepository
+          .updateTitle({ id: createdTicket.id, title: updatedTitle })
+          .pipe(Effect.flip)
+        const ticketItem = client
+          .select()
+          .from(schema.tickets)
+          .where(eq(schema.tickets.id, createdTicket.id))
+          .get()
+
+        expect(error).toStrictEqual(ProjectArchivedError.make({ id: project.id }))
+        expect(ticketItem).toStrictEqual(createdTicket)
+      })
+    )
   })
 })

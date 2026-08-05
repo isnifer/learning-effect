@@ -14,6 +14,7 @@ const UpdateTicketTitleProcedure = BaseProcedure.input(
     UpdateTicketTitle(input).pipe(
       Effect.catch(
         Match.valueTags({
+          ProjectArchivedError: cause => Effect.fail(new ORPCError('CONFLICT', { cause })),
           TicketNotFoundError: cause => Effect.fail(new ORPCError('NOT_FOUND', { cause })),
           TicketRepositoryError: cause =>
             Effect.fail(new ORPCError('INTERNAL_SERVER_ERROR', { cause })),

@@ -33,6 +33,6 @@ export default class TicketRepository extends Context.Service<
     ) => Effect.Effect<TTicket, TicketNotFoundError | TicketRepositoryError>
     readonly updateTitle: (
       input: Pick<TTicket, 'id' | 'title'>
-    ) => Effect.Effect<TTicket, TicketNotFoundError | TicketRepositoryError>
+    ) => Effect.Effect<TTicket, ProjectArchivedError | TicketNotFoundError | TicketRepositoryError>
   }
 >()('TicketRepository') {}

@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3'
-import { asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm'
 import * as Cause from 'effect/Cause'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
@@ -11,8 +11,9 @@ import TicketRepository, {
   TicketNotFoundError,
   TicketRepositoryError,
 } from '#/server/application/repositories/TicketRepository'
+import { ProjectId } from '#/shared/contracts/Project'
 import Ticket, { TicketStatus, type TTicket } from '#/shared/contracts/Ticket'
-import { tickets } from '../../sqlite/schema'
+import { projects, tickets } from '../../sqlite/schema'
 import BetterSqlite3Client from '../client/BetterSqlite3Client'
 
 const ticketStatusGroup = {
@@ -126,7 +127,14 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
             db
               .update(tickets)
               .set({ title: input.title })
-              .where(eq(tickets.id, input.id))
+              .from(projects)
+              .where(
+                and(
+                  eq(tickets.id, input.id),
+                  eq(tickets.projectId, projects.id),
+                  isNull(projects.archivedAt)
+                )
+              )
               .returning()
               .get()
           ).pipe(
@@ -139,7 +147,37 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
           )
 
           if (!ticketItem) {
-            return yield* TicketNotFoundError.make({ id: input.id })
+            const ticketProjectItem = yield* Effect.try(() =>
+              db
+                .select({ projectId: tickets.projectId })
+                .from(tickets)
+                .where(eq(tickets.id, input.id))
+                .get()
+            ).pipe(
+              Effect.mapError(cause =>
+                TicketRepositoryError.make({
+                  operation: 'updateTitle',
+                  cause,
+                })
+              )
+            )
+
+            if (!ticketProjectItem) {
+              return yield* TicketNotFoundError.make({ id: input.id })
+            }
+
+            const projectId = yield* Schema.decodeEffect(ProjectId)(
+              ticketProjectItem.projectId
+            ).pipe(
+              Effect.mapError(cause =>
+                TicketRepositoryError.make({
+                  operation: 'updateTitle',
+                  cause,
+                })
+              )
+            )
+
+            return yield* ProjectArchivedError.make({ id: projectId })
           }
 
           return yield* Schema.decodeEffect(Ticket)(ticketItem).pipe(

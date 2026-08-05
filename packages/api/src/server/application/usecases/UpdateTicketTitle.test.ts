@@ -2,6 +2,7 @@ import { describe, expect, layer } from '@effect/vitest'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
+import { ProjectArchivedError } from '#/server/application/repositories/ProjectRepository'
 import TicketRepositoryStub from '#/server/application/repositories/testing/TicketRepositoryStub'
 import TicketRepository, {
   TicketNotFoundError,
@@ -56,6 +57,22 @@ describe('UpdateTicketTitle', () => {
         const error = yield* UpdateTicketTitle(input).pipe(Effect.flip)
 
         expect(error).toBe(notFoundError)
+      })
+    )
+  })
+
+  const archivedError = ProjectArchivedError.make({ id: expectedTicket.projectId })
+  const TicketRepositoryArchived = Layer.succeed(TicketRepository)({
+    ...TicketRepositoryStub,
+    updateTitle: () => Effect.fail(archivedError),
+  })
+
+  layer(TicketRepositoryArchived)('when the Project is archived', it => {
+    it.effect('updateTitle: preserves ProjectArchivedError', () =>
+      Effect.gen(function* () {
+        const error = yield* UpdateTicketTitle(input).pipe(Effect.flip)
+
+        expect(error).toBe(archivedError)
       })
     )
   })
