@@ -17,13 +17,19 @@ Do not repeat the module name in both `describe` and `layer`. Use outcome contex
 generic labels such as `works`, `happy path`, or `test CreateTicket`. Do not add another `describe`
 only to separate success and error directions; a named `layer(...)` already creates that suite.
 
+Name test Layer constants with the repository subject first and its context second, such as
+`TicketRepositorySucceeded`, `TicketRepositoryFailed`, `TicketRepositoryMissing`, or
+`ProjectRepositoryArchived`. Use `RepositoryUnused` when a dependency only satisfies the test
+Runtime and must not be called. Do not use context-first names such as
+`SucceedingTicketRepository`, or generic names such as `TestTicketRepository`.
+
 ```ts
 describe('CreateTicket', () => {
-  layer(SucceedingTicketRepository)('when the repository succeeds', it => {
+  layer(TicketRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('create: creates a Ticket through the repository', () => effect)
   })
 
-  layer(FailingTicketRepository)('when the repository fails', it => {
+  layer(TicketRepositoryFailed)('when the repository fails', it => {
     it.effect('create: preserves TicketRepositoryError', () => effect)
   })
 })
