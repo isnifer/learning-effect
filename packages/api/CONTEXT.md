@@ -14,8 +14,9 @@ _Reference_: [mattpocock/skills](https://github.com/mattpocock/skills)
 ### Work
 
 **Project**:
-The top-level boundary for related engineering work recorded by Red Docket. Every other domain
-entity belongs to exactly one Project. A Project records when it was created as part of its history.
+The top-level boundary for related engineering work recorded by Red Docket. Every Project-scoped
+domain entity belongs to exactly one Project. A Project records when it was created as part of its
+history.
 
 **Project key**:
 An immutable, human-readable identity assigned when a Project is created. A different Project key
@@ -27,6 +28,11 @@ A Project removed from active work without deleting the Project or any entity it
 preserves its history, keeps its Project key reserved, and makes all Project data read-only until a
 human restores the Project. Agents cannot archive or restore Projects.
 _Avoid_: Project deletion
+
+**Project directory**:
+An absolute local filesystem path linked to a Project for coding work. A Project may have several
+Project directories, and the same path may be linked to several Projects.
+_Avoid_: Directory entity, home directory
 
 **Ticket**:
 A unit of work tracked within exactly one Project. A Ticket has its own identity, title, and status

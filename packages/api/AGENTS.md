@@ -35,3 +35,4 @@ typing.
 - [Semantic repositories and orchestration use cases](../../docs/adr/0001-semantic-repositories-and-orchestration-use-cases.md)
 - [Order tickets by workflow group and UUIDv7](../../docs/adr/0002-order-tickets-by-workflow-group-and-uuidv7.md)
 - [Use better-sqlite3 for desktop persistence](../../docs/adr/0003-use-better-sqlite3-for-desktop-persistence.md)
+- [Classify domain entities by Project scope](../../docs/adr/0004-classify-domain-entities-by-project-scope.md)
