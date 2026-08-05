@@ -40,6 +40,10 @@ function ProjectTicketsScreen() {
     selectProject(project.id)
   }
 
+  const openArchivedProjects = () => {
+    void navigate({ to: '/projects/archived' })
+  }
+
   const selectFilter = (filter: TTicketFilter) => {
     void navigate({
       search: filter === 'ALL' ? {} : { status: filter },
@@ -107,6 +111,7 @@ function ProjectTicketsScreen() {
         onProjectChange={selectProject}
         onProjectCreated={openProject}
         onFilterChange={selectFilter}
+        onArchivedProjectsOpen={openArchivedProjects}
       />
     </main>
   )

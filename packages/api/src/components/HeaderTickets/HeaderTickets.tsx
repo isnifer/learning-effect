@@ -1,4 +1,4 @@
-import { ArchiveIcon, FolderIcon, PlusIcon } from 'lucide-react'
+import { ArchiveIcon, FolderIcon, HistoryIcon, PlusIcon } from 'lucide-react'
 import DialogArchiveProject from '#/components/DialogArchiveProject'
 import DialogCreateProject from '#/components/DialogCreateProject'
 import DialogProjectDirectories from '#/components/DialogProjectDirectories'
@@ -14,6 +14,7 @@ interface HeaderTicketsProps {
   ticketCount: number
   onProjectChange: (projectId: TProject['id']) => void
   onProjectCreated: (project: TProject) => void
+  onArchivedProjectsOpen: () => void
 }
 
 export default function HeaderTickets({
@@ -23,6 +24,7 @@ export default function HeaderTickets({
   ticketCount,
   onProjectChange,
   onProjectCreated,
+  onArchivedProjectsOpen,
 }: HeaderTicketsProps) {
   const projectOptions = projects.map(project => ({
     value: project.id,
@@ -30,7 +32,7 @@ export default function HeaderTickets({
   }))
 
   return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Tickets</h1>
         <p className="text-muted-foreground mt-1 text-sm">
@@ -38,7 +40,7 @@ export default function HeaderTickets({
         </p>
       </div>
 
-      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+      <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap lg:w-auto lg:flex-nowrap">
         <Select
           ariaLabel="Select Project"
           testId={e2eTestIds.project.selector}
@@ -65,6 +67,13 @@ export default function HeaderTickets({
             </Button>
           }
         />
+        <Button
+          variant="outline"
+          data-testid={e2eTestIds.project.archived.workspaceTrigger}
+          onPress={onArchivedProjectsOpen}>
+          <HistoryIcon data-icon="inline-start" />
+          Archived
+        </Button>
         <DialogCreateProject
           trigger={
             <Button variant="outline" data-testid={e2eTestIds.project.create.workspaceTrigger}>

@@ -16,6 +16,7 @@ interface WorkspaceTicketsProps {
   onProjectChange: (projectId: TProject['id']) => void
   onProjectCreated: (project: TProject) => void
   onFilterChange: (filter: TTicketFilter) => void
+  onArchivedProjectsOpen: () => void
 }
 
 export default function WorkspaceTickets({
@@ -25,6 +26,7 @@ export default function WorkspaceTickets({
   onProjectChange,
   onProjectCreated,
   onFilterChange,
+  onArchivedProjectsOpen,
 }: WorkspaceTicketsProps) {
   const ticketsQuery = useTicketsQuery(project.id)
   const createTicket = useCreateTicket()
@@ -50,6 +52,7 @@ export default function WorkspaceTickets({
         ticketCount={tickets.length}
         onProjectChange={onProjectChange}
         onProjectCreated={onProjectCreated}
+        onArchivedProjectsOpen={onArchivedProjectsOpen}
       />
 
       <Card>
@@ -65,7 +68,7 @@ export default function WorkspaceTickets({
             }
           />
 
-          <Tabs selectedKey={filter} onSelectionChange={selectFilter}>
+          <Tabs className="flex-col" selectedKey={filter} onSelectionChange={selectFilter}>
             <TabsList aria-label="Filter Tickets">
               {TICKET_FILTER_OPTIONS.map(option => (
                 <TabsTrigger key={option.value} id={option.value}>

@@ -33,5 +33,14 @@ export const e2eTestIds = {
       confirm: 'project.archive.confirm',
       error: 'project.archive.error',
     },
+    archived: {
+      emptyTrigger: 'project.archived.empty-trigger',
+      workspaceTrigger: 'project.archived.workspace-trigger',
+      screen: 'project.archived.screen',
+      list: 'project.archived.list',
+      empty: 'project.archived.empty',
+      restore: 'project.archived.restore',
+      error: 'project.archived.error',
+    },
   },
 }

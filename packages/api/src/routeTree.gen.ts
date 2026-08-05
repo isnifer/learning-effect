@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProjectsArchivedRouteImport } from './routes/projects.archived'
 import { Route as ProjectsProjectIdTicketsRouteImport } from './routes/projects.$projectId.tickets'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsArchivedRoute = ProjectsArchivedRouteImport.update({
+  id: '/projects/archived',
+  path: '/projects/archived',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsProjectIdTicketsRoute =
@@ -26,27 +32,31 @@ const ProjectsProjectIdTicketsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/projects/archived': typeof ProjectsArchivedRoute
   '/projects/$projectId/tickets': typeof ProjectsProjectIdTicketsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/projects/archived': typeof ProjectsArchivedRoute
   '/projects/$projectId/tickets': typeof ProjectsProjectIdTicketsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/projects/archived': typeof ProjectsArchivedRoute
   '/projects/$projectId/tickets': typeof ProjectsProjectIdTicketsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/projects/$projectId/tickets'
+  fullPaths: '/' | '/projects/archived' | '/projects/$projectId/tickets'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/projects/$projectId/tickets'
-  id: '__root__' | '/' | '/projects/$projectId/tickets'
+  to: '/' | '/projects/archived' | '/projects/$projectId/tickets'
+  id: '__root__' | '/' | '/projects/archived' | '/projects/$projectId/tickets'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProjectsArchivedRoute: typeof ProjectsArchivedRoute
   ProjectsProjectIdTicketsRoute: typeof ProjectsProjectIdTicketsRoute
 }
 
@@ -57,6 +67,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/archived': {
+      id: '/projects/archived'
+      path: '/projects/archived'
+      fullPath: '/projects/archived'
+      preLoaderRoute: typeof ProjectsArchivedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/$projectId/tickets': {
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProjectsArchivedRoute: ProjectsArchivedRoute,
   ProjectsProjectIdTicketsRoute: ProjectsProjectIdTicketsRoute,
 }
 export const routeTree = rootRouteImport

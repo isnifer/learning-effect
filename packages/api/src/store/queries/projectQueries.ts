@@ -5,6 +5,9 @@ import type { TProject } from '#/shared/contracts/Project'
 export const useActiveProjectsQuery = () =>
   useQuery(orpc.project.getActive.queryOptions({ refetchOnWindowFocus: true }))
 
+export const useArchivedProjectsQuery = () =>
+  useQuery(orpc.project.getArchived.queryOptions({ refetchOnWindowFocus: true }))
+
 export const useProjectDirectoriesQuery = (projectId: TProject['id']) =>
   useQuery(
     orpc.project.getDirectories.queryOptions({
@@ -54,5 +57,20 @@ export const useArchiveProject = () =>
         context.client.invalidateQueries({
           queryKey: orpc.project.getActive.queryKey(),
         }),
+    })
+  )
+
+export const useRestoreProject = () =>
+  useMutation(
+    orpc.project.restore.mutationOptions({
+      onSettled: (_data, _error, _variables, _onMutateResult, context) =>
+        Promise.all([
+          context.client.invalidateQueries({
+            queryKey: orpc.project.getActive.queryKey(),
+          }),
+          context.client.invalidateQueries({
+            queryKey: orpc.project.getArchived.queryKey(),
+          }),
+        ]),
     })
   )

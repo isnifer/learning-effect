@@ -1,5 +1,5 @@
 import { Navigate, createFileRoute } from '@tanstack/react-router'
-import { ListTodoIcon, PlusIcon } from 'lucide-react'
+import { HistoryIcon, ListTodoIcon, PlusIcon } from 'lucide-react'
 import DialogCreateProject from '#/components/DialogCreateProject'
 import Empty from '#/components/Empty'
 import SkeletonTicketList from '#/components/SkeletonTicketList'
@@ -21,6 +21,10 @@ function ProjectsBootstrapScreen() {
       to: '/projects/$projectId/tickets',
       params: { projectId: project.id },
     })
+  }
+
+  const openArchivedProjects = () => {
+    void navigate({ to: '/projects/archived' })
   }
 
   if (projectsQuery.isSuccess && firstProject) {
@@ -56,15 +60,24 @@ function ProjectsBootstrapScreen() {
                   title="No Projects"
                   description="Create the first Project to start working with Tickets."
                   action={
-                    <DialogCreateProject
-                      trigger={
-                        <Button data-testid={e2eTestIds.project.create.emptyTrigger}>
-                          <PlusIcon data-icon="inline-start" />
-                          Create Project
-                        </Button>
-                      }
-                      onCreated={openProject}
-                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        data-testid={e2eTestIds.project.archived.emptyTrigger}
+                        onPress={openArchivedProjects}>
+                        <HistoryIcon data-icon="inline-start" />
+                        Archived Projects
+                      </Button>
+                      <DialogCreateProject
+                        trigger={
+                          <Button data-testid={e2eTestIds.project.create.emptyTrigger}>
+                            <PlusIcon data-icon="inline-start" />
+                            Create Project
+                          </Button>
+                        }
+                        onCreated={openProject}
+                      />
+                    </div>
                   }
                 />
               </div>
