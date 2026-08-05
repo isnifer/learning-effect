@@ -1,5 +1,4 @@
 import { afterAll, describe, expect, it } from '@effect/vitest'
-import { ORPCError, call } from '@orpc/server'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
@@ -13,11 +12,10 @@ import TicketRepository, {
   TicketNotFoundError,
   TicketRepositoryError,
 } from '#/server/application/repositories/TicketRepository'
-import type { AppRunPromise } from '#/server/runtime/AppRuntime'
 import Ticket, { UpdateTicketStatusInput } from '#/shared/contracts/Ticket'
-import UpdateTicketStatusProcedure from './UpdateTicketStatusProcedure'
+import { UpdateTicketStatusToolHandler } from './UpdateTicketStatusTool'
 
-describe('UpdateTicketStatusProcedure', () => {
+describe('UpdateTicketStatusTool', () => {
   const expectedTicket = Schema.decodeUnknownSync(Ticket)({
     id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
     projectId: '019fcc1a-bd5d-751e-9a30-0bc92d133b29',
@@ -25,33 +23,30 @@ describe('UpdateTicketStatusProcedure', () => {
     status: 'COMPLETED',
     createdAt: 1785835769172,
   })
-
   const input = Schema.decodeUnknownSync(UpdateTicketStatusInput)({
     id: expectedTicket.id,
     status: expectedTicket.status,
   })
-
-  const callUpdateTicketStatus = (runPromise: AppRunPromise) =>
-    call(UpdateTicketStatusProcedure, input, {
-      context: { runPromise },
-    })
+  const ProjectRepositoryUnused = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
 
   const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateStatus: () => Effect.succeed(expectedTicket),
   })
-  const ProjectRepositoryUnused = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
   const SuccessRuntime = ManagedRuntime.make(
     Layer.mergeAll(ProjectRepositoryUnused, TicketRepositorySucceeded)
   )
 
-  it('updateStatus: returns the updated Ticket when the repository succeeds', async () => {
-    const result = await callUpdateTicketStatus(SuccessRuntime.runPromise)
+  it('updateStatus: returns the updated Ticket', async () => {
+    const result = await UpdateTicketStatusToolHandler(SuccessRuntime.runPromise)(input)
 
-    expect(result).toStrictEqual(expectedTicket)
+    expect(result).toStrictEqual({
+      content: [{ type: 'text', text: `Updated status of ticket "${expectedTicket.title}".` }],
+      structuredContent: expectedTicket,
+    })
   })
 
-  const notFoundError = TicketNotFoundError.make({ id: expectedTicket.id })
+  const notFoundError = TicketNotFoundError.make({ id: input.id })
   const TicketRepositoryMissing = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateStatus: () => Effect.fail(notFoundError),
@@ -60,17 +55,13 @@ describe('UpdateTicketStatusProcedure', () => {
     Layer.mergeAll(ProjectRepositoryUnused, TicketRepositoryMissing)
   )
 
-  it('updateStatus: maps TicketNotFoundError to NOT_FOUND', async () => {
-    const error = await callUpdateTicketStatus(MissingTicketRuntime.runPromise).catch(
-      cause => cause
-    )
+  it('updateStatus: explains that the Ticket was not found', async () => {
+    const result = await UpdateTicketStatusToolHandler(MissingTicketRuntime.runPromise)(input)
 
-    if (!(error instanceof ORPCError)) {
-      throw error
-    }
-
-    expect(error.code).toBe('NOT_FOUND')
-    expect(error.cause).toBe(notFoundError)
+    expect(result).toStrictEqual({
+      content: [{ type: 'text', text: `Ticket ${input.id} was not found.` }],
+      isError: true,
+    })
   })
 
   const archivedError = ProjectArchivedError.make({ id: expectedTicket.projectId })
@@ -82,17 +73,18 @@ describe('UpdateTicketStatusProcedure', () => {
     Layer.mergeAll(ProjectRepositoryUnused, TicketRepositoryArchived)
   )
 
-  it('updateStatus: maps ProjectArchivedError to CONFLICT', async () => {
-    const error = await callUpdateTicketStatus(ArchivedProjectRuntime.runPromise).catch(
-      cause => cause
-    )
+  it('updateStatus: explains that a human must restore the archived Project', async () => {
+    const result = await UpdateTicketStatusToolHandler(ArchivedProjectRuntime.runPromise)(input)
 
-    if (!(error instanceof ORPCError)) {
-      throw error
-    }
-
-    expect(error.code).toBe('CONFLICT')
-    expect(error.cause).toBe(archivedError)
+    expect(result).toStrictEqual({
+      content: [
+        {
+          type: 'text',
+          text: `Project ${expectedTicket.projectId} is archived. A human must restore it before updating Ticket statuses.`,
+        },
+      ],
+      isError: true,
+    })
   })
 
   const repositoryError = TicketRepositoryError.make({
@@ -107,15 +99,13 @@ describe('UpdateTicketStatusProcedure', () => {
     Layer.mergeAll(ProjectRepositoryUnused, TicketRepositoryFailed)
   )
 
-  it('updateStatus: maps TicketRepositoryError to INTERNAL_SERVER_ERROR', async () => {
-    const error = await callUpdateTicketStatus(FailureRuntime.runPromise).catch(cause => cause)
+  it('updateStatus: hides repository details', async () => {
+    const result = await UpdateTicketStatusToolHandler(FailureRuntime.runPromise)(input)
 
-    if (!(error instanceof ORPCError)) {
-      throw error
-    }
-
-    expect(error.code).toBe('INTERNAL_SERVER_ERROR')
-    expect(error.cause).toBe(repositoryError)
+    expect(result).toStrictEqual({
+      content: [{ type: 'text', text: 'Could not update ticket status.' }],
+      isError: true,
+    })
   })
 
   afterAll(async () => {

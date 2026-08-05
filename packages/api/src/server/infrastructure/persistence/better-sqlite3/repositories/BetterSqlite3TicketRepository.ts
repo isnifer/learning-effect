@@ -96,7 +96,14 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
             db
               .update(tickets)
               .set({ status: input.status })
-              .where(eq(tickets.id, input.id))
+              .from(projects)
+              .where(
+                and(
+                  eq(tickets.id, input.id),
+                  eq(tickets.projectId, projects.id),
+                  isNull(projects.archivedAt)
+                )
+              )
               .returning()
               .get()
           ).pipe(
@@ -109,7 +116,37 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
           )
 
           if (!ticketItem) {
-            return yield* TicketNotFoundError.make({ id: input.id })
+            const ticketProjectItem = yield* Effect.try(() =>
+              db
+                .select({ projectId: tickets.projectId })
+                .from(tickets)
+                .where(eq(tickets.id, input.id))
+                .get()
+            ).pipe(
+              Effect.mapError(cause =>
+                TicketRepositoryError.make({
+                  operation: 'updateStatus',
+                  cause,
+                })
+              )
+            )
+
+            if (!ticketProjectItem) {
+              return yield* TicketNotFoundError.make({ id: input.id })
+            }
+
+            const projectId = yield* Schema.decodeEffect(ProjectId)(
+              ticketProjectItem.projectId
+            ).pipe(
+              Effect.mapError(cause =>
+                TicketRepositoryError.make({
+                  operation: 'updateStatus',
+                  cause,
+                })
+              )
+            )
+
+            return yield* ProjectArchivedError.make({ id: projectId })
           }
 
           return yield* Schema.decodeEffect(Ticket)(ticketItem).pipe(
