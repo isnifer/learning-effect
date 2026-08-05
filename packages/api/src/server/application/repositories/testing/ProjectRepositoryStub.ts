@@ -7,6 +7,7 @@ const ProjectRepositoryStub: ProjectRepository['Service'] = {
   archive: () => Effect.die(new Error('Unexpected ProjectRepository.archive')),
   restore: () => Effect.die(new Error('Unexpected ProjectRepository.restore')),
   linkDirectory: () => Effect.die(new Error('Unexpected ProjectRepository.linkDirectory')),
+  unlinkDirectory: () => Effect.die(new Error('Unexpected ProjectRepository.unlinkDirectory')),
 }
 
 export default ProjectRepositoryStub

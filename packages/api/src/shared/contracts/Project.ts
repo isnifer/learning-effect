@@ -66,6 +66,9 @@ export const LinkProjectDirectoryInput = Schema.Struct({
 })
 export type TLinkProjectDirectoryInput = typeof LinkProjectDirectoryInput.Type
 
+export const UnlinkProjectDirectoryInput = LinkProjectDirectoryInput
+export type TUnlinkProjectDirectoryInput = typeof UnlinkProjectDirectoryInput.Type
+
 export const Projects = Schema.Array(Project)
 
 export default Project

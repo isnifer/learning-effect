@@ -1,5 +1,5 @@
 import BetterSqlite3Database from 'better-sqlite3'
-import { and, desc, eq, isNull, sql } from 'drizzle-orm'
+import { and, desc, eq, exists, isNull, sql } from 'drizzle-orm'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
 import * as Effect from 'effect/Effect'
@@ -7,11 +7,16 @@ import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import ProjectRepository, {
   ProjectArchivedError,
+  ProjectDirectoryNotLinkedError,
   ProjectKeyAlreadyExistsError,
   ProjectNotFoundError,
   ProjectRepositoryError,
 } from '#/server/application/repositories/ProjectRepository'
-import Project, { LinkProjectDirectoryInput, Projects } from '#/shared/contracts/Project'
+import Project, {
+  LinkProjectDirectoryInput,
+  Projects,
+  UnlinkProjectDirectoryInput,
+} from '#/shared/contracts/Project'
 import { projectDirectories, projects } from '../../sqlite/schema'
 import BetterSqlite3Client from '../client/BetterSqlite3Client'
 
@@ -199,6 +204,72 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           }
 
           return input
+        }),
+      unlinkDirectory: input =>
+        Effect.gen(function* () {
+          const projectDirectoryItem = yield* Effect.try(() =>
+            db
+              .delete(projectDirectories)
+              .where(
+                and(
+                  eq(projectDirectories.projectId, input.projectId),
+                  eq(projectDirectories.absolutePath, input.absolutePath),
+                  exists(
+                    db
+                      .select({ id: projects.id })
+                      .from(projects)
+                      .where(and(eq(projects.id, input.projectId), isNull(projects.archivedAt)))
+                  )
+                )
+              )
+              .returning()
+              .get()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'unlinkDirectory',
+                cause,
+              })
+            )
+          )
+
+          if (projectDirectoryItem) {
+            return yield* Schema.decodeEffect(UnlinkProjectDirectoryInput)(
+              projectDirectoryItem
+            ).pipe(
+              Effect.mapError(cause =>
+                ProjectRepositoryError.make({
+                  operation: 'unlinkDirectory',
+                  cause,
+                })
+              )
+            )
+          }
+
+          const projectItem = yield* Effect.try(() =>
+            db
+              .select({ archivedAt: projects.archivedAt })
+              .from(projects)
+              .where(eq(projects.id, input.projectId))
+              .get()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'unlinkDirectory',
+                cause,
+              })
+            )
+          )
+
+          if (!projectItem) {
+            return yield* Effect.fail(ProjectNotFoundError.make({ id: input.projectId }))
+          }
+
+          if (typeof projectItem.archivedAt === 'number') {
+            return yield* Effect.fail(ProjectArchivedError.make({ id: input.projectId }))
+          }
+
+          return yield* Effect.fail(ProjectDirectoryNotLinkedError.make(input))
         }),
     }
   })

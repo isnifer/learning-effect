@@ -3,9 +3,11 @@ import * as Effect from 'effect/Effect'
 import * as Schema from 'effect/Schema'
 import {
   ProjectId,
+  ProjectDirectoryPath,
   ProjectKey,
   type TLinkProjectDirectoryInput,
   type TProject,
+  type TUnlinkProjectDirectoryInput,
 } from '#/shared/contracts/Project'
 
 export class ProjectRepositoryError extends Schema.TaggedErrorClass<ProjectRepositoryError>()(
@@ -37,6 +39,14 @@ export class ProjectArchivedError extends Schema.TaggedErrorClass<ProjectArchive
   }
 ) {}
 
+export class ProjectDirectoryNotLinkedError extends Schema.TaggedErrorClass<ProjectDirectoryNotLinkedError>()(
+  'ProjectDirectoryNotLinkedError',
+  {
+    projectId: ProjectId,
+    absolutePath: ProjectDirectoryPath,
+  }
+) {}
+
 export default class ProjectRepository extends Context.Service<
   ProjectRepository,
   {
@@ -55,6 +65,15 @@ export default class ProjectRepository extends Context.Service<
     ) => Effect.Effect<
       TLinkProjectDirectoryInput,
       ProjectArchivedError | ProjectNotFoundError | ProjectRepositoryError
+    >
+    readonly unlinkDirectory: (
+      input: TUnlinkProjectDirectoryInput
+    ) => Effect.Effect<
+      TUnlinkProjectDirectoryInput,
+      | ProjectArchivedError
+      | ProjectDirectoryNotLinkedError
+      | ProjectNotFoundError
+      | ProjectRepositoryError
     >
   }
 >()('ProjectRepository') {}
