@@ -15,7 +15,9 @@ import ProjectRepository, {
   ProjectNotFoundError,
 } from '#/server/application/repositories/ProjectRepository'
 import {
+  GetProjectDirectoriesInput,
   LinkProjectDirectoryInput,
+  ProjectDirectoryPaths,
   ProjectId,
   ProjectKey,
   ProjectName,
@@ -188,6 +190,93 @@ describe('BetterSqlite3ProjectRepository', () => {
 
         expect(error).toStrictEqual(ProjectNotFoundError.make({ id }))
       })
+    )
+
+    it.effect('getDirectories: returns Project directory paths ordered by path ascending', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const firstName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const firstKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const secondName = yield* Schema.decodeEffect(ProjectName)('Other Project')
+        const secondKey = yield* Schema.decodeEffect(ProjectKey)('OTHER')
+        const firstProject = yield* projectRepository.create({ name: firstName, key: firstKey })
+        const secondProject = yield* projectRepository.create({ name: secondName, key: secondKey })
+        const laterPathInput = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: firstProject.id,
+          absolutePath: '/Users/isnifer/www/red-docket',
+        })
+        const earlierPathInput = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: firstProject.id,
+          absolutePath: '/Users/isnifer/www/learning-effect',
+        })
+        const otherProjectInput = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: secondProject.id,
+          absolutePath: '/Users/isnifer/www/another-project',
+        })
+        yield* projectRepository.linkDirectory(laterPathInput)
+        yield* projectRepository.linkDirectory(earlierPathInput)
+        yield* projectRepository.linkDirectory(otherProjectInput)
+        const input = yield* Schema.decodeEffect(GetProjectDirectoriesInput)({
+          id: firstProject.id,
+        })
+
+        const directories = yield* projectRepository.getDirectories(input)
+        const expectedDirectories = yield* Schema.decodeEffect(ProjectDirectoryPaths)([
+          earlierPathInput.absolutePath,
+          laterPathInput.absolutePath,
+        ])
+
+        expect(directories).toStrictEqual(expectedDirectories)
+      })
+    )
+
+    it.effect('getDirectories: returns an empty array when the Project has no directories', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+        const input = yield* Schema.decodeEffect(GetProjectDirectoriesInput)({ id: project.id })
+
+        const directories = yield* projectRepository.getDirectories(input)
+
+        expect(directories).toStrictEqual([])
+      })
+    )
+
+    it.effect('getDirectories: returns directory paths for an archived Project', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+        const linkInput = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: project.id,
+          absolutePath: '/Users/isnifer/www/learning-effect',
+        })
+        yield* projectRepository.linkDirectory(linkInput)
+        yield* projectRepository.archive({ id: project.id })
+        const input = yield* Schema.decodeEffect(GetProjectDirectoriesInput)({ id: project.id })
+
+        const directories = yield* projectRepository.getDirectories(input)
+
+        expect(directories).toStrictEqual([linkInput.absolutePath])
+      })
+    )
+
+    it.effect(
+      'getDirectories: fails with ProjectNotFoundError when the Project does not exist',
+      () =>
+        Effect.gen(function* () {
+          const projectRepository = yield* ProjectRepository
+          const input = yield* Schema.decodeEffect(GetProjectDirectoriesInput)({
+            id: '019fcc1a-bd5d-751e-9a30-0bc92d133b30',
+          })
+
+          const error = yield* projectRepository.getDirectories(input).pipe(Effect.flip)
+
+          expect(error).toStrictEqual(ProjectNotFoundError.make({ id: input.id }))
+        })
     )
 
     it.effect('linkDirectory: links and returns an absolute path for an active Project', () =>

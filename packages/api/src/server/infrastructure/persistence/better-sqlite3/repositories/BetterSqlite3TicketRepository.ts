@@ -58,26 +58,25 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
             })
           )
         ),
-      getAll:
-        Effect.try(() =>
-          db
-            .select()
-            .from(tickets)
-            .orderBy(
-              desc(inArray(tickets.status, activeTicketStatuses)),
-              asc(inArray(tickets.status, completedTicketStatuses)),
-              desc(tickets.id)
-            )
-            .all()
-        ).pipe(
-          Effect.flatMap(Schema.decodeEffect(Schema.Array(Ticket))),
-          Effect.mapError(cause =>
-            TicketRepositoryError.make({
-              operation: 'getAll',
-              cause,
-            })
+      getAll: Effect.try(() =>
+        db
+          .select()
+          .from(tickets)
+          .orderBy(
+            desc(inArray(tickets.status, activeTicketStatuses)),
+            asc(inArray(tickets.status, completedTicketStatuses)),
+            desc(tickets.id)
           )
-        ),
+          .all()
+      ).pipe(
+        Effect.flatMap(Schema.decodeEffect(Schema.Array(Ticket))),
+        Effect.mapError(cause =>
+          TicketRepositoryError.make({
+            operation: 'getAll',
+            cause,
+          })
+        )
+      ),
       updateStatus: input =>
         Effect.gen(function* () {
           const ticketItem = yield* Effect.try(() =>

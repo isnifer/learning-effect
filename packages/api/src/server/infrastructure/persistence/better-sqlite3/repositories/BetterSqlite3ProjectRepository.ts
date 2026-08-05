@@ -1,5 +1,5 @@
 import BetterSqlite3Database from 'better-sqlite3'
-import { and, desc, eq, exists, isNull, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, isNull, sql } from 'drizzle-orm'
 import * as Cause from 'effect/Cause'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
@@ -15,6 +15,7 @@ import ProjectRepository, {
 } from '#/server/application/repositories/ProjectRepository'
 import Project, {
   LinkProjectDirectoryInput,
+  ProjectDirectoryPaths,
   Projects,
   UnlinkProjectDirectoryInput,
 } from '#/shared/contracts/Project'
@@ -60,23 +61,22 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
                 })
           })
         ),
-      getActive:
-        Effect.try(() =>
-          db
-            .select()
-            .from(projects)
-            .where(isNull(projects.archivedAt))
-            .orderBy(desc(projects.id))
-            .all()
-        ).pipe(
-          Effect.flatMap(Schema.decodeEffect(Projects)),
-          Effect.mapError(cause =>
-            ProjectRepositoryError.make({
-              operation: 'getActive',
-              cause,
-            })
-          )
-        ),
+      getActive: Effect.try(() =>
+        db
+          .select()
+          .from(projects)
+          .where(isNull(projects.archivedAt))
+          .orderBy(desc(projects.id))
+          .all()
+      ).pipe(
+        Effect.flatMap(Schema.decodeEffect(Projects)),
+        Effect.mapError(cause =>
+          ProjectRepositoryError.make({
+            operation: 'getActive',
+            cause,
+          })
+        )
+      ),
       archive: input =>
         Effect.gen(function* () {
           const archivedAt = yield* Clock.currentTimeMillis
@@ -137,6 +137,50 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
             Effect.mapError(cause =>
               ProjectRepositoryError.make({
                 operation: 'restore',
+                cause,
+              })
+            )
+          )
+        }),
+      getDirectories: input =>
+        Effect.gen(function* () {
+          const projectItem = yield* Effect.try(() =>
+            db.select({ id: projects.id }).from(projects).where(eq(projects.id, input.id)).get()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'getDirectories',
+                cause,
+              })
+            )
+          )
+
+          if (!projectItem) {
+            return yield* ProjectNotFoundError.make({ id: input.id })
+          }
+
+          const projectDirectoryItems = yield* Effect.try(() =>
+            db
+              .select({ absolutePath: projectDirectories.absolutePath })
+              .from(projectDirectories)
+              .where(eq(projectDirectories.projectId, input.id))
+              .orderBy(asc(projectDirectories.absolutePath))
+              .all()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'getDirectories',
+                cause,
+              })
+            )
+          )
+
+          return yield* Schema.decodeEffect(ProjectDirectoryPaths)(
+            projectDirectoryItems.map(item => item.absolutePath)
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'getDirectories',
                 cause,
               })
             )

@@ -5,8 +5,10 @@ import {
   ProjectId,
   ProjectDirectoryPath,
   ProjectKey,
+  type TGetProjectDirectoriesInput,
   type TLinkProjectDirectoryInput,
   type TProject,
+  type TProjectDirectoryPaths,
   type TUnlinkProjectDirectoryInput,
 } from '#/shared/contracts/Project'
 
@@ -60,6 +62,9 @@ export default class ProjectRepository extends Context.Service<
     readonly restore: (
       input: Pick<TProject, 'id'>
     ) => Effect.Effect<TProject, ProjectNotFoundError | ProjectRepositoryError>
+    readonly getDirectories: (
+      input: TGetProjectDirectoriesInput
+    ) => Effect.Effect<TProjectDirectoryPaths, ProjectNotFoundError | ProjectRepositoryError>
     readonly linkDirectory: (
       input: TLinkProjectDirectoryInput
     ) => Effect.Effect<

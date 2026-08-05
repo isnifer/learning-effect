@@ -40,6 +40,9 @@ export const ProjectDirectoryPath = Schema.String.pipe(
 )
 export type TProjectDirectoryPath = typeof ProjectDirectoryPath.Type
 
+export const ProjectDirectoryPaths = Schema.Array(ProjectDirectoryPath)
+export type TProjectDirectoryPaths = typeof ProjectDirectoryPaths.Type
+
 const ProjectTimestamp = Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0)))
 
 const Project = Schema.Struct({
@@ -59,6 +62,9 @@ export type TArchiveProjectInput = typeof ArchiveProjectInput.Type
 
 export const RestoreProjectInput = Project.mapFields(Struct.pick(['id']))
 export type TRestoreProjectInput = typeof RestoreProjectInput.Type
+
+export const GetProjectDirectoriesInput = Project.mapFields(Struct.pick(['id']))
+export type TGetProjectDirectoriesInput = typeof GetProjectDirectoriesInput.Type
 
 export const LinkProjectDirectoryInput = Schema.Struct({
   projectId: ProjectId,
