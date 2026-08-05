@@ -46,3 +46,13 @@ export const useCreateProject = () =>
         }),
     })
   )
+
+export const useArchiveProject = () =>
+  useMutation(
+    orpc.project.archive.mutationOptions({
+      onSettled: (_data, _error, _variables, _onMutateResult, context) =>
+        context.client.invalidateQueries({
+          queryKey: orpc.project.getActive.queryKey(),
+        }),
+    })
+  )

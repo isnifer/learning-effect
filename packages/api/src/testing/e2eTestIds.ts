@@ -26,5 +26,12 @@ export const e2eTestIds = {
       submit: 'project.create.submit',
       error: 'project.create.error',
     },
+    archive: {
+      trigger: 'project.archive.trigger',
+      dialog: 'project.archive.dialog',
+      cancel: 'project.archive.cancel',
+      confirm: 'project.archive.confirm',
+      error: 'project.archive.error',
+    },
   },
 }

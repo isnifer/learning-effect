@@ -1,4 +1,5 @@
-import { FolderIcon, PlusIcon } from 'lucide-react'
+import { ArchiveIcon, FolderIcon, PlusIcon } from 'lucide-react'
+import DialogArchiveProject from '#/components/DialogArchiveProject'
 import DialogCreateProject from '#/components/DialogCreateProject'
 import DialogProjectDirectories from '#/components/DialogProjectDirectories'
 import Select from '#/components/Select'
@@ -52,6 +53,15 @@ export default function HeaderTickets({
             <Button variant="outline" data-testid={e2eTestIds.project.directories.trigger}>
               <FolderIcon data-icon="inline-start" />
               Directories
+            </Button>
+          }
+        />
+        <DialogArchiveProject
+          project={project}
+          trigger={
+            <Button variant="outline" data-testid={e2eTestIds.project.archive.trigger}>
+              <ArchiveIcon data-icon="inline-start" />
+              Archive
             </Button>
           }
         />
