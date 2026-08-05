@@ -25,6 +25,18 @@ export const useLinkProjectDirectory = (projectId: TProject['id']) =>
     })
   )
 
+export const useUnlinkProjectDirectory = (projectId: TProject['id']) =>
+  useMutation(
+    orpc.project.unlinkDirectory.mutationOptions({
+      onSettled: (_data, _error, _variables, _onMutateResult, context) =>
+        context.client.invalidateQueries({
+          queryKey: orpc.project.getDirectories.queryKey({
+            input: { id: projectId },
+          }),
+        }),
+    })
+  )
+
 export const useCreateProject = () =>
   useMutation(
     orpc.project.create.mutationOptions({

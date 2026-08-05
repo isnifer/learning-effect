@@ -1,5 +1,5 @@
 import * as Schema from 'effect/Schema'
-import { FolderIcon } from 'lucide-react'
+import { FolderIcon, UnlinkIcon } from 'lucide-react'
 import { Fragment, type ReactNode, useState } from 'react'
 import Empty from '#/components/Empty'
 import { Button } from '#/components/ui/button'
@@ -12,10 +12,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
-import { Item, ItemContent, ItemGroup, ItemMedia, ItemSeparator } from '#/components/ui/item'
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemGroup,
+  ItemMedia,
+  ItemSeparator,
+} from '#/components/ui/item'
 import { Skeleton } from '#/components/ui/skeleton'
-import { ProjectDirectoryPath, type TProject } from '#/shared/contracts/Project'
-import { useLinkProjectDirectory, useProjectDirectoriesQuery } from '#/store/queries/projectQueries'
+import {
+  ProjectDirectoryPath,
+  type TProject,
+  type TProjectDirectoryPath,
+} from '#/shared/contracts/Project'
+import {
+  useLinkProjectDirectory,
+  useProjectDirectoriesQuery,
+  useUnlinkProjectDirectory,
+} from '#/store/queries/projectQueries'
 import { e2eTestIds } from '#/testing/e2eTestIds'
 
 interface DialogProjectDirectoriesProps {
@@ -44,12 +59,20 @@ interface DialogProjectDirectoriesContentProps {
 function DialogProjectDirectoriesContent({ project }: DialogProjectDirectoriesContentProps) {
   const directoriesQuery = useProjectDirectoriesQuery(project.id)
   const linkDirectory = useLinkProjectDirectory(project.id)
+  const unlinkDirectory = useUnlinkProjectDirectory(project.id)
   const [isSelectingDirectory, setIsSelectingDirectory] = useState(false)
   const [hasDirectoryPickerError, setHasDirectoryPickerError] = useState(false)
   const isLinkingDirectory = isSelectingDirectory || linkDirectory.isPending
+  const failedUnlinkDirectoryPath = unlinkDirectory.isError
+    ? unlinkDirectory.variables?.absolutePath
+    : undefined
+  const hasUnlinkDirectoryError =
+    !!failedUnlinkDirectoryPath &&
+    !!directoriesQuery.data?.some(absolutePath => absolutePath === failedUnlinkDirectoryPath)
 
   const selectDirectory = async () => {
     linkDirectory.reset()
+    unlinkDirectory.reset()
     setHasDirectoryPickerError(false)
     setIsSelectingDirectory(true)
 
@@ -69,6 +92,16 @@ function DialogProjectDirectoriesContent({ project }: DialogProjectDirectoriesCo
     } finally {
       setIsSelectingDirectory(false)
     }
+  }
+
+  const unlinkDirectoryPath = (absolutePath: TProjectDirectoryPath) => {
+    linkDirectory.reset()
+    unlinkDirectory.reset()
+    setHasDirectoryPickerError(false)
+    unlinkDirectory.mutate({
+      projectId: project.id,
+      absolutePath,
+    })
   }
 
   return (
@@ -104,12 +137,14 @@ function DialogProjectDirectoriesContent({ project }: DialogProjectDirectoriesCo
       )}
 
       {directoriesQuery.isSuccess && directoriesQuery.data.length === 0 && (
-        <Empty
-          className="py-8"
-          icon={<FolderIcon />}
-          title="No directories linked"
-          description="This Project is not linked to a local directory."
-        />
+        <div data-testid={e2eTestIds.project.directories.empty}>
+          <Empty
+            className="py-8"
+            icon={<FolderIcon />}
+            title="No directories linked"
+            description="This Project is not linked to a local directory."
+          />
+        </div>
       )}
 
       {directoriesQuery.isSuccess && directoriesQuery.data.length > 0 && (
@@ -126,6 +161,17 @@ function DialogProjectDirectoriesContent({ project }: DialogProjectDirectoriesCo
                 <ItemContent className="min-w-0">
                   <code className="break-all">{absolutePath}</code>
                 </ItemContent>
+                <ItemActions>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Unlink ${absolutePath}`}
+                    data-testid={e2eTestIds.project.directories.unlink}
+                    isDisabled={isLinkingDirectory || unlinkDirectory.isPending}
+                    onPress={() => unlinkDirectoryPath(absolutePath)}>
+                    <UnlinkIcon />
+                  </Button>
+                </ItemActions>
               </Item>
             </Fragment>
           ))}
@@ -141,11 +187,20 @@ function DialogProjectDirectoriesContent({ project }: DialogProjectDirectoriesCo
         </p>
       )}
 
+      {hasUnlinkDirectoryError && (
+        <p
+          role="alert"
+          className="text-destructive text-sm"
+          data-testid={e2eTestIds.project.directories.unlinkError}>
+          Could not unlink the directory. Try again.
+        </p>
+      )}
+
       <DialogFooter>
         <DialogClose>Close</DialogClose>
         <Button
           data-testid={e2eTestIds.project.directories.link}
-          isDisabled={isLinkingDirectory || !window.redDocket}
+          isDisabled={isLinkingDirectory || unlinkDirectory.isPending || !window.redDocket}
           onPress={selectDirectory}>
           <FolderIcon data-icon="inline-start" />
           {isLinkingDirectory ? 'Linking…' : 'Link directory'}

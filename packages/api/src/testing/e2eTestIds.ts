@@ -6,8 +6,11 @@ export const e2eTestIds = {
       trigger: 'project.directories.trigger',
       dialog: 'project.directories.dialog',
       list: 'project.directories.list',
+      empty: 'project.directories.empty',
       link: 'project.directories.link',
       linkError: 'project.directories.link-error',
+      unlink: 'project.directories.unlink',
+      unlinkError: 'project.directories.unlink-error',
     },
     create: {
       emptyTrigger: 'project.create.empty-trigger',
