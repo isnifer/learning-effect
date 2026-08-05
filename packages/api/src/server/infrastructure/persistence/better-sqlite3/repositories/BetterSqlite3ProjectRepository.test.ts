@@ -156,6 +156,53 @@ describe('BetterSqlite3ProjectRepository', () => {
       })
     )
 
+    it.effect('getArchived: returns recently archived Projects first', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const olderName = yield* Schema.decodeEffect(ProjectName)('Older Project')
+        const olderKey = yield* Schema.decodeEffect(ProjectKey)('OLD')
+        const newerName = yield* Schema.decodeEffect(ProjectName)('Newer Project')
+        const newerKey = yield* Schema.decodeEffect(ProjectKey)('NEW')
+        const activeName = yield* Schema.decodeEffect(ProjectName)('Active Project')
+        const activeKey = yield* Schema.decodeEffect(ProjectKey)('ACTIVE')
+
+        const olderProject = yield* projectRepository.create({ name: olderName, key: olderKey })
+        yield* TestClock.adjust('1 millis')
+        const newerProject = yield* projectRepository.create({ name: newerName, key: newerKey })
+        yield* TestClock.adjust('1 millis')
+        yield* projectRepository.create({ name: activeName, key: activeKey })
+
+        const archivedNewerProject = yield* projectRepository.archive({ id: newerProject.id })
+        yield* TestClock.adjust('1 millis')
+        const archivedOlderProject = yield* projectRepository.archive({ id: olderProject.id })
+
+        const archivedProjects = yield* projectRepository.getArchived
+
+        expect(archivedProjects).toStrictEqual([archivedOlderProject, archivedNewerProject])
+      })
+    )
+
+    it.effect('getArchived: orders equal archive timestamps by UUIDv7 descending', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const olderName = yield* Schema.decodeEffect(ProjectName)('Older Project')
+        const olderKey = yield* Schema.decodeEffect(ProjectKey)('OLD')
+        const newerName = yield* Schema.decodeEffect(ProjectName)('Newer Project')
+        const newerKey = yield* Schema.decodeEffect(ProjectKey)('NEW')
+
+        const olderProject = yield* projectRepository.create({ name: olderName, key: olderKey })
+        yield* TestClock.adjust('1 millis')
+        const newerProject = yield* projectRepository.create({ name: newerName, key: newerKey })
+
+        const archivedOlderProject = yield* projectRepository.archive({ id: olderProject.id })
+        const archivedNewerProject = yield* projectRepository.archive({ id: newerProject.id })
+
+        const archivedProjects = yield* projectRepository.getArchived
+
+        expect(archivedProjects).toStrictEqual([archivedNewerProject, archivedOlderProject])
+      })
+    )
+
     it.effect('getById: returns the Project including when it is archived', () =>
       Effect.gen(function* () {
         const projectRepository = yield* ProjectRepository

@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3'
-import { and, asc, desc, eq, exists, isNull, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, isNotNull, isNull, sql } from 'drizzle-orm'
 import * as Cause from 'effect/Cause'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
@@ -87,6 +87,22 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
         Effect.mapError(cause =>
           ProjectRepositoryError.make({
             operation: 'getActive',
+            cause,
+          })
+        )
+      ),
+      getArchived: Effect.try(() =>
+        db
+          .select()
+          .from(projects)
+          .where(isNotNull(projects.archivedAt))
+          .orderBy(desc(projects.archivedAt), desc(projects.id))
+          .all()
+      ).pipe(
+        Effect.flatMap(Schema.decodeEffect(Projects)),
+        Effect.mapError(cause =>
+          ProjectRepositoryError.make({
+            operation: 'getArchived',
             cause,
           })
         )
