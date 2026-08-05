@@ -8,6 +8,21 @@ Each package under `packages/*` must own its package-specific instructions in an
 package-specific supporting rules in `.agents/`. Keep only instructions that apply to every package
 in this root file.
 
+## Engineering principles
+
+- Do not preserve backward compatibility unless a current requirement explicitly needs it. Remove
+  obsolete paths instead of adding compatibility layers or fallbacks.
+- Choose the simplest implementation that fully meets the current requirements. Avoid speculative
+  abstractions, configuration, and indirection.
+- Grow the product in small end-to-end working slices. Add each capability to a product that already
+  works; do not trade working behavior for unfinished complexity.
+- Keep modules cohesive, boundaries explicit, and concerns separated.
+- Reuse documented capabilities of established dependencies already in the workspace before writing
+  a custom implementation or adding a package. Check the dependency documentation, source, and types
+  before concluding that it lacks a required capability.
+- Make durable architectural decisions for known requirements. Do not add a temporary stopgap that is
+  intended to be replaced later.
+
 ## Workspace rules
 
 - [Colocate tests with tested modules](.agents/rules/colocated-tests.md)
