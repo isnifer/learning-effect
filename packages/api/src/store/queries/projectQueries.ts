@@ -13,6 +13,18 @@ export const useProjectDirectoriesQuery = (projectId: TProject['id']) =>
     })
   )
 
+export const useLinkProjectDirectory = (projectId: TProject['id']) =>
+  useMutation(
+    orpc.project.linkDirectory.mutationOptions({
+      onSuccess: (_data, _variables, _onMutateResult, context) =>
+        context.client.invalidateQueries({
+          queryKey: orpc.project.getDirectories.queryKey({
+            input: { id: projectId },
+          }),
+        }),
+    })
+  )
+
 export const useCreateProject = () =>
   useMutation(
     orpc.project.create.mutationOptions({

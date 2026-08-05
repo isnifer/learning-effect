@@ -1,9 +1,11 @@
+import * as Schema from 'effect/Schema'
 import { FolderIcon } from 'lucide-react'
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type ReactNode, useState } from 'react'
 import Empty from '#/components/Empty'
 import { Button } from '#/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -12,8 +14,8 @@ import {
 } from '#/components/ui/dialog'
 import { Item, ItemContent, ItemGroup, ItemMedia, ItemSeparator } from '#/components/ui/item'
 import { Skeleton } from '#/components/ui/skeleton'
-import type { TProject } from '#/shared/contracts/Project'
-import { useProjectDirectoriesQuery } from '#/store/queries/projectQueries'
+import { ProjectDirectoryPath, type TProject } from '#/shared/contracts/Project'
+import { useLinkProjectDirectory, useProjectDirectoriesQuery } from '#/store/queries/projectQueries'
 import { e2eTestIds } from '#/testing/e2eTestIds'
 
 interface DialogProjectDirectoriesProps {
@@ -41,6 +43,33 @@ interface DialogProjectDirectoriesContentProps {
 
 function DialogProjectDirectoriesContent({ project }: DialogProjectDirectoriesContentProps) {
   const directoriesQuery = useProjectDirectoriesQuery(project.id)
+  const linkDirectory = useLinkProjectDirectory(project.id)
+  const [isSelectingDirectory, setIsSelectingDirectory] = useState(false)
+  const [hasDirectoryPickerError, setHasDirectoryPickerError] = useState(false)
+  const isLinkingDirectory = isSelectingDirectory || linkDirectory.isPending
+
+  const selectDirectory = async () => {
+    linkDirectory.reset()
+    setHasDirectoryPickerError(false)
+    setIsSelectingDirectory(true)
+
+    try {
+      const selectedPath = await window.redDocket?.selectProjectDirectory()
+
+      if (selectedPath) {
+        const absolutePath = await Schema.decodeUnknownPromise(ProjectDirectoryPath)(selectedPath)
+
+        linkDirectory.mutate({
+          projectId: project.id,
+          absolutePath,
+        })
+      }
+    } catch {
+      setHasDirectoryPickerError(true)
+    } finally {
+      setIsSelectingDirectory(false)
+    }
+  }
 
   return (
     <>
@@ -103,7 +132,25 @@ function DialogProjectDirectoriesContent({ project }: DialogProjectDirectoriesCo
         </ItemGroup>
       )}
 
-      <DialogFooter showCloseButton />
+      {(hasDirectoryPickerError || linkDirectory.isError) && (
+        <p
+          role="alert"
+          className="text-destructive text-sm"
+          data-testid={e2eTestIds.project.directories.linkError}>
+          Could not link the directory. Try again.
+        </p>
+      )}
+
+      <DialogFooter>
+        <DialogClose>Close</DialogClose>
+        <Button
+          data-testid={e2eTestIds.project.directories.link}
+          isDisabled={isLinkingDirectory || !window.redDocket}
+          onPress={selectDirectory}>
+          <FolderIcon data-icon="inline-start" />
+          {isLinkingDirectory ? 'Linking…' : 'Link directory'}
+        </Button>
+      </DialogFooter>
     </>
   )
 }
