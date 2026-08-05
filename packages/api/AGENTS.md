@@ -21,6 +21,7 @@ typing.
 
 ## Package rules
 
+- [Prefer atomic idempotent persistence operations](.agents/rules/atomic-idempotent-persistence.md)
 - [Organize application components](.agents/rules/components.md)
 - [Reuse domain literal schemas across outer layers](.agents/rules/domain-literal-schemas.md)
 - [Name oRPC routers by entity and repository operation](.agents/rules/orpc-router-naming.md)

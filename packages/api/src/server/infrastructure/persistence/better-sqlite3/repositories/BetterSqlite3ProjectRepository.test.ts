@@ -7,10 +7,12 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
+import { TestClock } from 'effect/testing'
 import ProjectRepository, {
   ProjectKeyAlreadyExistsError,
+  ProjectNotFoundError,
 } from '#/server/application/repositories/ProjectRepository'
-import { ProjectKey, ProjectName } from '#/shared/contracts/Project'
+import { ProjectId, ProjectKey, ProjectName } from '#/shared/contracts/Project'
 import * as schema from '../../sqlite/schema'
 import BetterSqlite3Client from '../client/BetterSqlite3Client'
 import BetterSqlite3ProjectRepository from './BetterSqlite3ProjectRepository'
@@ -63,6 +65,80 @@ describe('BetterSqlite3ProjectRepository', () => {
         const error = yield* projectRepository.create({ name: secondName, key }).pipe(Effect.flip)
 
         expect(error).toStrictEqual(ProjectKeyAlreadyExistsError.make({ key }))
+      })
+    )
+
+    it.effect('getActive: returns active Projects ordered by UUIDv7 descending', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const olderName = yield* Schema.decodeEffect(ProjectName)('Older Project')
+        const olderKey = yield* Schema.decodeEffect(ProjectKey)('OLD')
+        const newerName = yield* Schema.decodeEffect(ProjectName)('Newer Project')
+        const newerKey = yield* Schema.decodeEffect(ProjectKey)('NEW')
+        const archivedName = yield* Schema.decodeEffect(ProjectName)('Archived Project')
+        const archivedKey = yield* Schema.decodeEffect(ProjectKey)('ARCHIVED')
+
+        const olderProject = yield* projectRepository.create({ name: olderName, key: olderKey })
+        yield* TestClock.adjust('1 millis')
+        const newerProject = yield* projectRepository.create({ name: newerName, key: newerKey })
+        yield* TestClock.adjust('1 millis')
+        const archivedProject = yield* projectRepository.create({
+          name: archivedName,
+          key: archivedKey,
+        })
+
+        yield* projectRepository.archive({ id: archivedProject.id })
+
+        const activeProjects = yield* projectRepository.getActive()
+
+        expect(newerProject.id > olderProject.id).toBe(true)
+        expect(activeProjects).toStrictEqual([newerProject, olderProject])
+      })
+    )
+
+    it.effect('archive: archives and returns a Project', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+
+        yield* TestClock.adjust('1 millis')
+        const archivedProject = yield* projectRepository.archive({ id: project.id })
+        const activeProjects = yield* projectRepository.getActive()
+
+        expect(archivedProject).toStrictEqual({
+          ...project,
+          archivedAt: project.createdAt + 1,
+        })
+        expect(activeProjects).not.toContainEqual(archivedProject)
+      })
+    )
+
+    it.effect('archive: preserves archivedAt when the Project is already archived', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+
+        yield* TestClock.adjust('1 millis')
+        const firstResult = yield* projectRepository.archive({ id: project.id })
+        yield* TestClock.adjust('1 millis')
+        const secondResult = yield* projectRepository.archive({ id: project.id })
+
+        expect(secondResult).toStrictEqual(firstResult)
+      })
+    )
+
+    it.effect('archive: fails with ProjectNotFoundError when the Project does not exist', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const id = yield* Schema.decodeEffect(ProjectId)('019fcc1a-bd5d-751e-9a30-0bc92d133b2c')
+
+        const error = yield* projectRepository.archive({ id }).pipe(Effect.flip)
+
+        expect(error).toStrictEqual(ProjectNotFoundError.make({ id }))
       })
     )
   })

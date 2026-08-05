@@ -65,6 +65,11 @@ async function main() {
   })
 
   await app.whenReady()
+
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    app.dock?.setIcon(join(app.getAppPath(), 'assets/icon.png'))
+  }
+
   httpServer = await startBackend()
   await createWindow()
 
