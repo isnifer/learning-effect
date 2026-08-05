@@ -10,7 +10,7 @@ const config = {
   packagerConfig: {
     name: 'Red Docket',
     appBundleId: 'app.reddocket.desktop',
-    icon: 'assets/icon.icns',
+    icon: ['assets/icon.icon', 'assets/icon.icns'],
     asar: true,
     extraResource: ['migrations'],
   },
