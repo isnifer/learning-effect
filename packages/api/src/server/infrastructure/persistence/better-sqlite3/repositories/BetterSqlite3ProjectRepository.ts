@@ -1,17 +1,18 @@
 import BetterSqlite3Database from 'better-sqlite3'
-import { desc, eq, isNull, sql } from 'drizzle-orm'
+import { and, desc, eq, isNull, sql } from 'drizzle-orm'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import ProjectRepository, {
+  ProjectArchivedError,
   ProjectKeyAlreadyExistsError,
   ProjectNotFoundError,
   ProjectRepositoryError,
 } from '#/server/application/repositories/ProjectRepository'
-import Project, { Projects } from '#/shared/contracts/Project'
-import { projects } from '../../sqlite/schema'
+import Project, { LinkProjectDirectoryInput, Projects } from '#/shared/contracts/Project'
+import { projectDirectories, projects } from '../../sqlite/schema'
 import BetterSqlite3Client from '../client/BetterSqlite3Client'
 
 const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
@@ -134,6 +135,70 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
               })
             )
           )
+        }),
+      linkDirectory: input =>
+        Effect.gen(function* () {
+          const projectDirectoryItem = yield* Effect.try(() =>
+            db
+              .insert(projectDirectories)
+              .select(
+                db
+                  .select({
+                    projectId: projects.id,
+                    absolutePath: sql<string>`${input.absolutePath}`.as('absolute_path'),
+                  })
+                  .from(projects)
+                  .where(and(eq(projects.id, input.projectId), isNull(projects.archivedAt)))
+              )
+              .onConflictDoNothing({
+                target: [projectDirectories.projectId, projectDirectories.absolutePath],
+              })
+              .returning()
+              .get()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'linkDirectory',
+                cause,
+              })
+            )
+          )
+
+          if (projectDirectoryItem) {
+            return yield* Schema.decodeEffect(LinkProjectDirectoryInput)(projectDirectoryItem).pipe(
+              Effect.mapError(cause =>
+                ProjectRepositoryError.make({
+                  operation: 'linkDirectory',
+                  cause,
+                })
+              )
+            )
+          }
+
+          const projectItem = yield* Effect.try(() =>
+            db
+              .select({ archivedAt: projects.archivedAt })
+              .from(projects)
+              .where(eq(projects.id, input.projectId))
+              .get()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'linkDirectory',
+                cause,
+              })
+            )
+          )
+
+          if (!projectItem) {
+            return yield* Effect.fail(ProjectNotFoundError.make({ id: input.projectId }))
+          }
+
+          if (typeof projectItem.archivedAt === 'number') {
+            return yield* Effect.fail(ProjectArchivedError.make({ id: input.projectId }))
+          }
+
+          return input
         }),
     }
   })

@@ -15,6 +15,13 @@
       "when": 1785890382000,
       "tag": "0001_magenta_inhumans",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785919025121,
+      "tag": "0002_wealthy_harry_osborn",
+      "breakpoints": true
     }
   ]
 }

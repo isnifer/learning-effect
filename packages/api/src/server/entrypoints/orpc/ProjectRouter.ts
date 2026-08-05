@@ -1,6 +1,7 @@
 import ArchiveProjectProcedure from './ArchiveProjectProcedure'
 import CreateProjectProcedure from './CreateProjectProcedure'
 import GetActiveProjectsProcedure from './GetActiveProjectsProcedure'
+import LinkProjectDirectoryProcedure from './LinkProjectDirectoryProcedure'
 import RestoreProjectProcedure from './RestoreProjectProcedure'
 
 const ProjectRouter = {
@@ -8,6 +9,7 @@ const ProjectRouter = {
   getActive: GetActiveProjectsProcedure,
   archive: ArchiveProjectProcedure,
   restore: RestoreProjectProcedure,
+  linkDirectory: LinkProjectDirectoryProcedure,
 }
 
 export default ProjectRouter

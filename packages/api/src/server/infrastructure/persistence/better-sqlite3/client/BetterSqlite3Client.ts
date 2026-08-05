@@ -16,7 +16,13 @@ export default class BetterSqlite3Client extends Context.Service<
   TBetterSqlite3Client
 >()('BetterSqlite3Client') {
   static readonly fromDatabase = (database: Database.Database) =>
-    Layer.succeed(BetterSqlite3Client)(drizzle(database, { schema }))
+    Layer.effect(BetterSqlite3Client)(
+      Effect.sync(() => {
+        database.pragma('foreign_keys = ON')
+
+        return drizzle(database, { schema })
+      })
+    )
 
   static readonly fromFile = (options: {
     readonly filename: string
@@ -27,7 +33,10 @@ export default class BetterSqlite3Client extends Context.Service<
         const database = yield* Effect.acquireRelease(
           Effect.try(() => {
             mkdirSync(dirname(options.filename), { recursive: true })
-            return new BetterSqlite3Database(options.filename)
+            const database = new BetterSqlite3Database(options.filename)
+            database.pragma('foreign_keys = ON')
+
+            return database
           }),
           database => Effect.sync(() => database.close())
         )

@@ -1,5 +1,16 @@
 import * as Schema from 'effect/Schema'
 import * as Struct from 'effect/Struct'
+import {
+  posixAbsoluteProjectDirectoryPathPattern,
+  windowsDriveAbsoluteProjectDirectoryPathPattern,
+  windowsUncAbsoluteProjectDirectoryPathPattern,
+} from '#/utils/projectDirectoryPathPatterns'
+
+const absoluteProjectDirectoryPathPatterns = [
+  posixAbsoluteProjectDirectoryPathPattern,
+  windowsDriveAbsoluteProjectDirectoryPathPattern,
+  windowsUncAbsoluteProjectDirectoryPathPattern,
+] as const
 
 export const ProjectId = Schema.String.pipe(
   Schema.check(Schema.isUUID(7)),
@@ -15,6 +26,19 @@ export const ProjectKey = Schema.Trim.pipe(
   Schema.check(Schema.isPattern(/^[A-Z][A-Z0-9]*$/)),
   Schema.brand('ProjectKey')
 )
+
+export const ProjectDirectoryPath = Schema.String.pipe(
+  Schema.check(
+    Schema.makeFilter(absolutePath =>
+      !absolutePath.includes('\0') &&
+      absoluteProjectDirectoryPathPatterns.some(pattern => pattern.test(absolutePath))
+        ? undefined
+        : 'Expected an absolute Project directory path'
+    )
+  ),
+  Schema.brand('ProjectDirectoryPath')
+)
+export type TProjectDirectoryPath = typeof ProjectDirectoryPath.Type
 
 const ProjectTimestamp = Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0)))
 
@@ -35,6 +59,12 @@ export type TArchiveProjectInput = typeof ArchiveProjectInput.Type
 
 export const RestoreProjectInput = Project.mapFields(Struct.pick(['id']))
 export type TRestoreProjectInput = typeof RestoreProjectInput.Type
+
+export const LinkProjectDirectoryInput = Schema.Struct({
+  projectId: ProjectId,
+  absolutePath: ProjectDirectoryPath,
+})
+export type TLinkProjectDirectoryInput = typeof LinkProjectDirectoryInput.Type
 
 export const Projects = Schema.Array(Project)
 

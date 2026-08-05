@@ -1,7 +1,12 @@
 import * as Context from 'effect/Context'
 import * as Effect from 'effect/Effect'
 import * as Schema from 'effect/Schema'
-import { ProjectId, ProjectKey, type TProject } from '#/shared/contracts/Project'
+import {
+  ProjectId,
+  ProjectKey,
+  type TLinkProjectDirectoryInput,
+  type TProject,
+} from '#/shared/contracts/Project'
 
 export class ProjectRepositoryError extends Schema.TaggedErrorClass<ProjectRepositoryError>()(
   'ProjectRepositoryError',
@@ -25,6 +30,13 @@ export class ProjectNotFoundError extends Schema.TaggedErrorClass<ProjectNotFoun
   }
 ) {}
 
+export class ProjectArchivedError extends Schema.TaggedErrorClass<ProjectArchivedError>()(
+  'ProjectArchivedError',
+  {
+    id: ProjectId,
+  }
+) {}
+
 export default class ProjectRepository extends Context.Service<
   ProjectRepository,
   {
@@ -38,5 +50,11 @@ export default class ProjectRepository extends Context.Service<
     readonly restore: (
       input: Pick<TProject, 'id'>
     ) => Effect.Effect<TProject, ProjectNotFoundError | ProjectRepositoryError>
+    readonly linkDirectory: (
+      input: TLinkProjectDirectoryInput
+    ) => Effect.Effect<
+      TLinkProjectDirectoryInput,
+      ProjectArchivedError | ProjectNotFoundError | ProjectRepositoryError
+    >
   }
 >()('ProjectRepository') {}

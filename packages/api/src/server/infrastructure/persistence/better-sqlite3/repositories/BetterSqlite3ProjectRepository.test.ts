@@ -9,10 +9,16 @@ import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
 import { TestClock } from 'effect/testing'
 import ProjectRepository, {
+  ProjectArchivedError,
   ProjectKeyAlreadyExistsError,
   ProjectNotFoundError,
 } from '#/server/application/repositories/ProjectRepository'
-import { ProjectId, ProjectKey, ProjectName } from '#/shared/contracts/Project'
+import {
+  LinkProjectDirectoryInput,
+  ProjectId,
+  ProjectKey,
+  ProjectName,
+} from '#/shared/contracts/Project'
 import * as schema from '../../sqlite/schema'
 import BetterSqlite3Client from '../client/BetterSqlite3Client'
 import BetterSqlite3ProjectRepository from './BetterSqlite3ProjectRepository'
@@ -34,7 +40,7 @@ describe('BetterSqlite3ProjectRepository', () => {
   migrate(client, { migrationsFolder })
 
   beforeEach(() => {
-    database.exec('DELETE FROM projects')
+    database.exec('DELETE FROM project_directories; DELETE FROM projects')
   })
   afterAll(() => database.close())
 
@@ -179,6 +185,102 @@ describe('BetterSqlite3ProjectRepository', () => {
         const error = yield* projectRepository.restore({ id }).pipe(Effect.flip)
 
         expect(error).toStrictEqual(ProjectNotFoundError.make({ id }))
+      })
+    )
+
+    it.effect('linkDirectory: links and returns an absolute path for an active Project', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+        const input = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: project.id,
+          absolutePath: '/Users/isnifer/www/learning-effect',
+        })
+
+        const linkedDirectory = yield* projectRepository.linkDirectory(input)
+
+        expect(linkedDirectory).toStrictEqual(input)
+      })
+    )
+
+    it.effect('linkDirectory: returns the existing link when it is already linked', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+        const input = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: project.id,
+          absolutePath: '/Users/isnifer/www/learning-effect',
+        })
+
+        const firstResult = yield* projectRepository.linkDirectory(input)
+        const secondResult = yield* projectRepository.linkDirectory(input)
+
+        expect(secondResult).toStrictEqual(firstResult)
+      })
+    )
+
+    it.effect('linkDirectory: links the same absolute path to different Projects', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const firstName = yield* Schema.decodeEffect(ProjectName)('Red Docket Desktop')
+        const firstKey = yield* Schema.decodeEffect(ProjectKey)('RDD')
+        const secondName = yield* Schema.decodeEffect(ProjectName)('Red Docket MCP')
+        const secondKey = yield* Schema.decodeEffect(ProjectKey)('RDM')
+        const firstProject = yield* projectRepository.create({ name: firstName, key: firstKey })
+        const secondProject = yield* projectRepository.create({ name: secondName, key: secondKey })
+        const absolutePath = '/Users/isnifer/www/learning-effect'
+        const firstInput = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: firstProject.id,
+          absolutePath,
+        })
+        const secondInput = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: secondProject.id,
+          absolutePath,
+        })
+
+        const firstResult = yield* projectRepository.linkDirectory(firstInput)
+        const secondResult = yield* projectRepository.linkDirectory(secondInput)
+
+        expect(firstResult).toStrictEqual(firstInput)
+        expect(secondResult).toStrictEqual(secondInput)
+      })
+    )
+
+    it.effect(
+      'linkDirectory: fails with ProjectNotFoundError when the Project does not exist',
+      () =>
+        Effect.gen(function* () {
+          const projectRepository = yield* ProjectRepository
+          const input = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+            projectId: '019fcc1a-bd5d-751e-9a30-0bc92d133b2e',
+            absolutePath: '/Users/isnifer/www/learning-effect',
+          })
+
+          const error = yield* projectRepository.linkDirectory(input).pipe(Effect.flip)
+
+          expect(error).toStrictEqual(ProjectNotFoundError.make({ id: input.projectId }))
+        })
+    )
+
+    it.effect('linkDirectory: fails with ProjectArchivedError when the Project is archived', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name, key })
+        const archivedProject = yield* projectRepository.archive({ id: project.id })
+        const input = yield* Schema.decodeEffect(LinkProjectDirectoryInput)({
+          projectId: archivedProject.id,
+          absolutePath: '/Users/isnifer/www/learning-effect',
+        })
+
+        const error = yield* projectRepository.linkDirectory(input).pipe(Effect.flip)
+
+        expect(error).toStrictEqual(ProjectArchivedError.make({ id: input.projectId }))
       })
     )
   })
