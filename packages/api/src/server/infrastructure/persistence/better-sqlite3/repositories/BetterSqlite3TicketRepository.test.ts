@@ -85,7 +85,7 @@ describe('BetterSqlite3TicketRepository', () => {
           status: 'COMPLETED',
         })
 
-        const tickets = yield* ticketRepository.getAll()
+        const tickets = yield* ticketRepository.getAll
 
         expect(newerInProgress.id > olderInProgress.id).toBe(true)
         expect(tickets).toStrictEqual([newerInProgress, olderInProgress, ticket, completed])
@@ -102,7 +102,7 @@ describe('BetterSqlite3TicketRepository', () => {
           id: createdTicket.id,
           status: 'COMPLETED',
         })
-        const tickets = yield* ticketRepository.getAll()
+        const tickets = yield* ticketRepository.getAll
 
         expect(updatedTicket).toStrictEqual({
           ...createdTicket,
@@ -136,7 +136,7 @@ describe('BetterSqlite3TicketRepository', () => {
           id: createdTicket.id,
           title: updatedTicketTitle,
         })
-        const tickets = yield* ticketRepository.getAll()
+        const tickets = yield* ticketRepository.getAll
 
         expect(updatedTicket).toStrictEqual({
           ...createdTicket,

@@ -39,7 +39,7 @@ describe('GetActiveProjectsProcedure', () => {
 
   const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
-    getActive: () => Effect.succeed(expectedProjects),
+    getActive: Effect.succeed(expectedProjects),
   })
   const TestTicketRepository = Layer.succeed(TicketRepository)(TicketRepositoryStub)
 
@@ -62,7 +62,7 @@ describe('GetActiveProjectsProcedure', () => {
 
   const FailingProjectRepository = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
-    getActive: () => Effect.fail(repositoryError),
+    getActive: Effect.fail(repositoryError),
   })
 
   const FailureRuntime = ManagedRuntime.make(

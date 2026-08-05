@@ -1,5 +1,6 @@
 import BetterSqlite3Database from 'better-sqlite3'
 import { and, desc, eq, exists, isNull, sql } from 'drizzle-orm'
+import * as Cause from 'effect/Cause'
 import * as Clock from 'effect/Clock'
 import * as Crypto from 'effect/Crypto'
 import * as Effect from 'effect/Effect'
@@ -31,35 +32,35 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           const id = yield* crypto.randomUUIDv7
           const createdAt = yield* Clock.currentTimeMillis
 
-          const projectItem = yield* Effect.try({
-            try: () =>
-              db
-                .insert(projects)
-                .values({
-                  id,
-                  name: input.name,
-                  key: input.key,
-                  createdAt,
-                  archivedAt: null,
-                })
-                .returning()
-                .get(),
-            catch: cause => cause,
-          })
+          const projectItem = yield* Effect.try(() =>
+            db
+              .insert(projects)
+              .values({
+                id,
+                name: input.name,
+                key: input.key,
+                createdAt,
+                archivedAt: null,
+              })
+              .returning()
+              .get()
+          )
 
           return yield* Schema.decodeEffect(Project)(projectItem)
         }).pipe(
-          Effect.mapError(cause =>
-            cause instanceof BetterSqlite3Database.SqliteError &&
-            cause.code === 'SQLITE_CONSTRAINT_UNIQUE'
+          Effect.mapError(cause => {
+            const repositoryCause = Cause.isUnknownError(cause) ? cause.cause : cause
+
+            return repositoryCause instanceof BetterSqlite3Database.SqliteError &&
+              repositoryCause.code === 'SQLITE_CONSTRAINT_UNIQUE'
               ? ProjectKeyAlreadyExistsError.make({ key: input.key })
               : ProjectRepositoryError.make({
                   operation: 'create',
-                  cause,
+                  cause: repositoryCause,
                 })
-          )
+          })
         ),
-      getActive: () =>
+      getActive:
         Effect.try(() =>
           db
             .select()
@@ -98,7 +99,7 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           )
 
           if (!archivedProjectItem) {
-            return yield* Effect.fail(ProjectNotFoundError.make({ id: input.id }))
+            return yield* ProjectNotFoundError.make({ id: input.id })
           }
 
           return yield* Schema.decodeEffect(Project)(archivedProjectItem).pipe(
@@ -129,7 +130,7 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           )
 
           if (!restoredProjectItem) {
-            return yield* Effect.fail(ProjectNotFoundError.make({ id: input.id }))
+            return yield* ProjectNotFoundError.make({ id: input.id })
           }
 
           return yield* Schema.decodeEffect(Project)(restoredProjectItem).pipe(
@@ -196,11 +197,11 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           )
 
           if (!projectItem) {
-            return yield* Effect.fail(ProjectNotFoundError.make({ id: input.projectId }))
+            return yield* ProjectNotFoundError.make({ id: input.projectId })
           }
 
           if (typeof projectItem.archivedAt === 'number') {
-            return yield* Effect.fail(ProjectArchivedError.make({ id: input.projectId }))
+            return yield* ProjectArchivedError.make({ id: input.projectId })
           }
 
           return input
@@ -262,14 +263,14 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           )
 
           if (!projectItem) {
-            return yield* Effect.fail(ProjectNotFoundError.make({ id: input.projectId }))
+            return yield* ProjectNotFoundError.make({ id: input.projectId })
           }
 
           if (typeof projectItem.archivedAt === 'number') {
-            return yield* Effect.fail(ProjectArchivedError.make({ id: input.projectId }))
+            return yield* ProjectArchivedError.make({ id: input.projectId })
           }
 
-          return yield* Effect.fail(ProjectDirectoryNotLinkedError.make(input))
+          return yield* ProjectDirectoryNotLinkedError.make(input)
         }),
     }
   })

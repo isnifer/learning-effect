@@ -53,7 +53,7 @@ export default class ProjectRepository extends Context.Service<
     readonly create: (
       input: Pick<TProject, 'name' | 'key'>
     ) => Effect.Effect<TProject, ProjectKeyAlreadyExistsError | ProjectRepositoryError>
-    readonly getActive: () => Effect.Effect<ReadonlyArray<TProject>, ProjectRepositoryError>
+    readonly getActive: Effect.Effect<ReadonlyArray<TProject>, ProjectRepositoryError>
     readonly archive: (
       input: Pick<TProject, 'id'>
     ) => Effect.Effect<TProject, ProjectNotFoundError | ProjectRepositoryError>

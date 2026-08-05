@@ -13,15 +13,32 @@
     "build": "pnpm --filter red-docket build",
     "package": "pnpm --filter red-docket electron:package",
     "make": "pnpm --filter red-docket electron:make",
-    "prepare": "./scripts/prepare-effect.sh",
+    "effect:refresh": "if test -d .repos/effect/.git; then git -C .repos/effect pull --ff-only; else mkdir -p .repos && git clone https://github.com/Effect-TS/effect .repos/effect; fi",
+    "effect:patch": "effect-tsgo patch --oxlint",
+    "prepare": "pnpm run effect:refresh && pnpm run effect:patch",
+    "lint:effect": "effect-tsgo diagnostics --project packages/api/tsconfig.json --format pretty",
     "typecheck": "pnpm --filter red-docket typecheck",
+    "format:check": "oxfmt --check **/*.{ts,tsx}",
+    "format-changed": "oxfmt $(git diff --name-only) --check",
+    "format-changed:fix": "oxfmt $(git diff --name-only)",
+    "format-staged": "oxfmt $(git diff --cached --name-only) --check",
+    "format-staged:fix": "oxfmt $(git diff --cached --name-only)",
+    "lint": "oxlint -f json . --max-warnings=0",
+    "lint-changed": "oxlint $(git diff --name-only) -f json --max-warnings=0",
+    "lint-changed:fix": "oxlint $(git diff --name-only) --fix -f json --max-warnings=0",
+    "lint-staged": "oxlint $(git diff --cached --name-only) -f json --max-warnings=0",
+    "lint-staged:fix": "oxlint $(git diff --cached --name-only) --fix -f json --max-warnings=0",
     "test": "pnpm --filter red-docket test",
     "verify": "pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "@effect/language-service": "0.87.1",
+    "@effect/tsgo": "0.31.0",
     "oxfmt": "0.61.0",
-    "oxlint": "1.76.0"
+    "oxlint": "1.77.0",
+    "oxlint-tsgolint": "7.0.2001"
+  },
+  "optionalDependencies": {
+    "@effect/tsgo-darwin-arm64": "0.31.0"
   },
   "packageManager": "pnpm@11.20.0+sha512.9a6f330a95b66446ea088faf1521405a8a01f07fde7124cc9958dfed52d4bb436737e65b08f85f37b46fcba375092558ac51262b816844b22f63406ed166bfee"
 }

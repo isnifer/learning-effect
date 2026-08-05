@@ -27,7 +27,7 @@ describe('GetActiveProjects', () => {
 
   const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
-    getActive: () => Effect.succeed(expectedProjects),
+    getActive: Effect.succeed(expectedProjects),
   })
 
   layer(SucceedingProjectRepository)('when the repository succeeds', it => {
@@ -47,7 +47,7 @@ describe('GetActiveProjects', () => {
 
   const FailingProjectRepository = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
-    getActive: () => Effect.fail(repositoryError),
+    getActive: Effect.fail(repositoryError),
   })
 
   layer(FailingProjectRepository)('when the repository fails', it => {

@@ -24,7 +24,7 @@ export default class TicketRepository extends Context.Service<
     readonly create: (
       input: Pick<TTicket, 'title'>
     ) => Effect.Effect<TTicket, TicketRepositoryError>
-    readonly getAll: () => Effect.Effect<ReadonlyArray<TTicket>, TicketRepositoryError>
+    readonly getAll: Effect.Effect<ReadonlyArray<TTicket>, TicketRepositoryError>
     readonly updateStatus: (
       input: Pick<TTicket, 'id' | 'status'>
     ) => Effect.Effect<TTicket, TicketNotFoundError | TicketRepositoryError>

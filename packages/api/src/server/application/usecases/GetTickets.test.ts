@@ -25,7 +25,7 @@ describe('GetTickets', () => {
 
   const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
-    getAll: () => Effect.succeed(expectedTickets),
+    getAll: Effect.succeed(expectedTickets),
   })
 
   layer(SucceedingTicketRepository)('when the repository succeeds', it => {
@@ -45,7 +45,7 @@ describe('GetTickets', () => {
 
   const FailingTicketRepository = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
-    getAll: () => Effect.fail(repositoryError),
+    getAll: Effect.fail(repositoryError),
   })
 
   layer(FailingTicketRepository)('when the repository fails', it => {

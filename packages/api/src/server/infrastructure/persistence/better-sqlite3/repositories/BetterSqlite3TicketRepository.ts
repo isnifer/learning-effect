@@ -58,7 +58,7 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
             })
           )
         ),
-      getAll: () =>
+      getAll:
         Effect.try(() =>
           db
             .select()
@@ -97,7 +97,7 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
           )
 
           if (!ticketItem) {
-            return yield* Effect.fail(TicketNotFoundError.make({ id: input.id }))
+            return yield* TicketNotFoundError.make({ id: input.id })
           }
 
           return yield* Schema.decodeEffect(Ticket)(ticketItem).pipe(
@@ -128,7 +128,7 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
           )
 
           if (!ticketItem) {
-            return yield* Effect.fail(TicketNotFoundError.make({ id: input.id }))
+            return yield* TicketNotFoundError.make({ id: input.id })
           }
 
           return yield* Schema.decodeEffect(Ticket)(ticketItem).pipe(

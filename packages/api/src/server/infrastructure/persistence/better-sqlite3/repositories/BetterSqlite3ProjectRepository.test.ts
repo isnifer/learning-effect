@@ -97,7 +97,7 @@ describe('BetterSqlite3ProjectRepository', () => {
 
         yield* projectRepository.archive({ id: archivedProject.id })
 
-        const activeProjects = yield* projectRepository.getActive()
+        const activeProjects = yield* projectRepository.getActive
 
         expect(newerProject.id > olderProject.id).toBe(true)
         expect(activeProjects).toStrictEqual([newerProject, olderProject])
@@ -113,7 +113,7 @@ describe('BetterSqlite3ProjectRepository', () => {
 
         yield* TestClock.adjust('1 millis')
         const archivedProject = yield* projectRepository.archive({ id: project.id })
-        const activeProjects = yield* projectRepository.getActive()
+        const activeProjects = yield* projectRepository.getActive
 
         expect(archivedProject).toStrictEqual({
           ...project,
@@ -159,7 +159,7 @@ describe('BetterSqlite3ProjectRepository', () => {
         const archivedProject = yield* projectRepository.archive({ id: project.id })
 
         const restoredProject = yield* projectRepository.restore({ id: archivedProject.id })
-        const activeProjects = yield* projectRepository.getActive()
+        const activeProjects = yield* projectRepository.getActive
 
         expect(restoredProject).toStrictEqual(project)
         expect(activeProjects).toContainEqual(restoredProject)

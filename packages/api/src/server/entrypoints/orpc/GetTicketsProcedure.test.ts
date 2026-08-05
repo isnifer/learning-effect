@@ -37,7 +37,7 @@ describe('GetTicketsProcedure', () => {
 
   const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
-    getAll: () => Effect.succeed(expectedTickets),
+    getAll: Effect.succeed(expectedTickets),
   })
   const TestProjectRepository = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
 
@@ -60,7 +60,7 @@ describe('GetTicketsProcedure', () => {
 
   const FailingTicketRepository = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
-    getAll: () => Effect.fail(repositoryError),
+    getAll: Effect.fail(repositoryError),
   })
 
   const FailureRuntime = ManagedRuntime.make(
