@@ -9,6 +9,7 @@ const config = defineConfig({
     alias: {
       '#': fileURLToPath(new URL('./src', import.meta.url)),
     },
+    preserveSymlinks: false,
   },
   server: {
     proxy: {
