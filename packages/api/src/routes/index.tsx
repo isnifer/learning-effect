@@ -18,6 +18,8 @@ import {
   TicketFilter,
   type TTicketFilter,
 } from '#/constants/ticket'
+import type { TProject } from '#/shared/contracts/Project'
+import { useActiveProjectsQuery } from '#/store/queries/projectQueries'
 import {
   useCreateTicket,
   useTicketsQuery,
@@ -28,137 +30,226 @@ import {
 export const Route = createFileRoute('/')({ component: TicketScreen })
 
 function TicketScreen() {
+  const projectsQuery = useActiveProjectsQuery()
+  const projects = projectsQuery.data ?? []
+  const firstProject = projects[0]
+
+  return (
+    <main className="bg-background text-foreground min-h-screen px-4 py-10 sm:px-6">
+      {projectsQuery.isPending && (
+        <div className="mx-auto w-full max-w-4xl">
+          <Card>
+            <CardContent>
+              <SkeletonTicketList />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {projectsQuery.isError && (
+        <div className="mx-auto w-full max-w-4xl">
+          <Card>
+            <CardContent>
+              <Empty
+                icon={<ListTodoIcon />}
+                title="Could not load Projects"
+                description="The request failed. Try loading the Project list again."
+                action={
+                  <Button variant="outline" onPress={() => projectsQuery.refetch()}>
+                    Try again
+                  </Button>
+                }
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {projectsQuery.isSuccess && !firstProject && (
+        <div className="mx-auto w-full max-w-4xl">
+          <Card>
+            <CardContent>
+              <Empty
+                icon={<ListTodoIcon />}
+                title="No Projects"
+                description="Create the first Project to start working with Tickets."
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {firstProject && <TicketWorkspace projects={projects} initialProject={firstProject} />}
+    </main>
+  )
+}
+
+interface TicketWorkspaceProps {
+  projects: ReadonlyArray<TProject>
+  initialProject: TProject
+}
+
+function TicketWorkspace({ projects, initialProject }: TicketWorkspaceProps) {
   const [filter, setFilter] = useState<TTicketFilter>('ALL')
-  const ticketsQuery = useTicketsQuery()
+  const [selectedProject, setSelectedProject] = useState(initialProject)
+  const projectOptions = projects.map(project => ({
+    value: project.id,
+    label: `${project.key} — ${project.name}`,
+  }))
+  const ticketsQuery = useTicketsQuery(selectedProject.id)
   const createTicket = useCreateTicket()
-  const updateTicketStatus = useUpdateTicketStatus()
-  const updateTicketTitle = useUpdateTicketTitle()
+  const updateTicketStatus = useUpdateTicketStatus(selectedProject.id)
+  const updateTicketTitle = useUpdateTicketTitle(selectedProject.id)
 
   const tickets = ticketsQuery.data ?? []
   const visibleTickets =
     filter === 'ALL' ? tickets : tickets.filter(ticket => ticket.status === filter)
   const completedTickets = tickets.filter(ticket => ticket.status === 'COMPLETED').length
 
+  const selectProject = (projectId: TProject['id']) => {
+    const project = projects.find(project => project.id === projectId)
+
+    if (project) {
+      setSelectedProject(project)
+    }
+  }
+
   return (
-    <main className="bg-background text-foreground min-h-screen px-4 py-10 sm:px-6">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <header>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
           <h1 className="text-3xl font-semibold tracking-tight">Tickets</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             {completedTickets} of {tickets.length} tickets completed
           </p>
-        </header>
+        </div>
 
-        <Card>
-          <CardContent className="flex flex-col gap-6">
-            <FormCreateTicket
-              isPending={createTicket.isPending}
-              error={createTicket.error}
-              onCreate={input => createTicket.mutateAsync(input)}
+        <Select
+          ariaLabel="Select Project"
+          value={selectedProject.id}
+          options={projectOptions}
+          triggerClassName="w-full sm:w-64"
+          onChange={selectProject}
+        />
+      </header>
+
+      <Card>
+        <CardContent className="flex flex-col gap-6">
+          <FormCreateTicket
+            isPending={createTicket.isPending}
+            error={createTicket.error}
+            onCreate={input =>
+              createTicket.mutateAsync({
+                projectId: selectedProject.id,
+                title: input.title,
+              })
+            }
+          />
+
+          <Tabs
+            selectedKey={filter}
+            onSelectionChange={key => {
+              const selectedFilter = Schema.decodeUnknownOption(TicketFilter)(key)
+
+              if (selectedFilter._tag === 'Some') {
+                setFilter(selectedFilter.value)
+              }
+            }}>
+            <TabsList aria-label="Filter Tickets">
+              {TICKET_FILTER_OPTIONS.map(option => (
+                <TabsTrigger key={option.value} id={option.value}>
+                  {option.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+          {ticketsQuery.isPending && <SkeletonTicketList />}
+
+          {ticketsQuery.isError && (
+            <Empty
+              icon={<ListTodoIcon />}
+              title="Could not load tickets"
+              description="The request failed. Try loading the list again."
+              action={
+                <Button variant="outline" onPress={() => ticketsQuery.refetch()}>
+                  Try again
+                </Button>
+              }
             />
+          )}
 
-            <Tabs
-              selectedKey={filter}
-              onSelectionChange={key => {
-                const selectedFilter = Schema.decodeUnknownOption(TicketFilter)(key)
+          {ticketsQuery.isSuccess && visibleTickets.length === 0 && (
+            <Empty
+              icon={<ListTodoIcon />}
+              title={tickets.length === 0 ? 'No tickets yet' : 'No matching tickets'}
+              description={
+                tickets.length === 0
+                  ? 'Add the first ticket using the form above.'
+                  : 'Choose another status to see more tickets.'
+              }
+            />
+          )}
 
-                if (selectedFilter._tag === 'Some') {
-                  setFilter(selectedFilter.value)
-                }
-              }}>
-              <TabsList aria-label="Filter tickets">
-                {TICKET_FILTER_OPTIONS.map(option => (
-                  <TabsTrigger key={option.value} id={option.value}>
-                    {option.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-
-            {ticketsQuery.isPending && <SkeletonTicketList />}
-
-            {ticketsQuery.isError && (
-              <Empty
-                icon={<ListTodoIcon />}
-                title="Could not load tickets"
-                description="The request failed. Try loading the list again."
-                action={
-                  <Button variant="outline" onPress={() => ticketsQuery.refetch()}>
-                    Try again
-                  </Button>
-                }
-              />
-            )}
-
-            {ticketsQuery.isSuccess && visibleTickets.length === 0 && (
-              <Empty
-                icon={<ListTodoIcon />}
-                title={tickets.length === 0 ? 'No tickets yet' : 'No matching tickets'}
-                description={
-                  tickets.length === 0
-                    ? 'Add the first ticket using the form above.'
-                    : 'Choose another status to see more tickets.'
-                }
-              />
-            )}
-
-            {ticketsQuery.isSuccess && visibleTickets.length > 0 && (
-              <ItemGroup className="gap-0">
-                {visibleTickets.map((ticket, index) => (
-                  <div key={ticket.id}>
-                    {index > 0 && <ItemSeparator className="my-0" />}
-                    <Item className="rounded-none px-0 py-4">
-                      <ItemContent>
-                        <FormUpdateTicketTitle
-                          ticket={ticket}
-                          isPending={
-                            updateTicketTitle.isPending &&
-                            updateTicketTitle.variables?.id === ticket.id
+          {ticketsQuery.isSuccess && visibleTickets.length > 0 && (
+            <ItemGroup className="gap-0">
+              {visibleTickets.map((ticket, index) => (
+                <div key={ticket.id}>
+                  {index > 0 && <ItemSeparator className="my-0" />}
+                  <Item className="rounded-none px-0 py-4">
+                    <ItemContent>
+                      <FormUpdateTicketTitle
+                        ticket={ticket}
+                        isPending={
+                          updateTicketTitle.isPending &&
+                          updateTicketTitle.variables?.id === ticket.id
+                        }
+                        error={
+                          updateTicketTitle.variables?.id === ticket.id
+                            ? updateTicketTitle.error
+                            : null
+                        }
+                        onUpdate={input => updateTicketTitle.mutateAsync(input)}
+                      />
+                    </ItemContent>
+                    <ItemActions className="w-full justify-end sm:w-auto">
+                      <Select
+                        ariaLabel={`Change status for ${ticket.title}`}
+                        value={ticket.status}
+                        options={TICKET_STATUS_OPTIONS}
+                        isDisabled={
+                          updateTicketStatus.isPending &&
+                          updateTicketStatus.variables?.id === ticket.id
+                        }
+                        variant={TICKET_STATUS_PRESENTATION[ticket.status].variant}
+                        triggerClassName="w-32"
+                        onChange={status => {
+                          if (status !== ticket.status) {
+                            updateTicketStatus.mutate({
+                              id: ticket.id,
+                              status,
+                            })
                           }
-                          error={
-                            updateTicketTitle.variables?.id === ticket.id
-                              ? updateTicketTitle.error
-                              : null
-                          }
-                          onUpdate={input => updateTicketTitle.mutateAsync(input)}
-                        />
-                      </ItemContent>
-                      <ItemActions className="w-full justify-end sm:w-auto">
-                        <Select
-                          ariaLabel={`Change status for ${ticket.title}`}
-                          value={ticket.status}
-                          options={TICKET_STATUS_OPTIONS}
-                          isDisabled={
-                            updateTicketStatus.isPending &&
-                            updateTicketStatus.variables?.id === ticket.id
-                          }
-                          variant={TICKET_STATUS_PRESENTATION[ticket.status].variant}
-                          triggerClassName="w-32"
-                          onChange={status => {
-                            if (status !== ticket.status) {
-                              updateTicketStatus.mutate({ id: ticket.id, status })
-                            }
-                          }}
-                        />
-                      </ItemActions>
-                    </Item>
-                  </div>
-                ))}
-              </ItemGroup>
-            )}
+                        }}
+                      />
+                    </ItemActions>
+                  </Item>
+                </div>
+              ))}
+            </ItemGroup>
+          )}
 
-            {updateTicketStatus.isError && (
-              <p role="alert" className="text-destructive text-sm">
-                Could not update the ticket status. Try again.
-              </p>
-            )}
-          </CardContent>
+          {updateTicketStatus.isError && (
+            <p role="alert" className="text-destructive text-sm">
+              Could not update the ticket status. Try again.
+            </p>
+          )}
+        </CardContent>
 
-          <CardFooter className="text-muted-foreground text-sm">
-            Showing {visibleTickets.length} of {tickets.length} tickets
-          </CardFooter>
-        </Card>
-      </div>
-    </main>
+        <CardFooter className="text-muted-foreground text-sm">
+          Showing {visibleTickets.length} of {tickets.length} Tickets
+        </CardFooter>
+      </Card>
+    </div>
   )
 }

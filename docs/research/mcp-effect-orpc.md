@@ -13,7 +13,7 @@ Add a stateless `/mcp` entrypoint to the existing Worker with the official
 Register four tools:
 
 - `ticket.create`
-- `ticket.getAll`
+- `ticket.getByProject`
 - `ticket.updateStatus`
 - `ticket.updateTitle`
 
@@ -111,7 +111,7 @@ The existing router exposes the same four operations under `ticket`:
 
 - [`TicketRouter.ts`](../../packages/api/src/server/entrypoints/orpc/TicketRouter.ts)
 - [`CreateTicketProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/CreateTicketProcedure.ts)
-- [`GetTicketsProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/GetTicketsProcedure.ts)
+- [`GetTicketsByProjectProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/GetTicketsByProjectProcedure.ts)
 - [`UpdateTicketStatusProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/UpdateTicketStatusProcedure.ts)
 - [`UpdateTicketTitleProcedure.ts`](../../packages/api/src/server/entrypoints/orpc/UpdateTicketTitleProcedure.ts)
 
@@ -157,7 +157,7 @@ Suggested annotations:
 
 | Tool                  | `readOnlyHint` | `destructiveHint` | `idempotentHint` | Reason                                               |
 | --------------------- | -------------- | ----------------- | ---------------- | ---------------------------------------------------- |
-| `ticket.getAll`       | `true`         | `false`           | `true`           | Reads state only.                                    |
+| `ticket.getByProject` | `true`         | `false`           | `true`           | Reads state only.                                    |
 | `ticket.create`       | `false`        | `false`           | `false`          | Repeating it creates another ticket.                 |
 | `ticket.updateStatus` | `false`        | `false`           | `true`           | Repeating the same target state has the same result. |
 | `ticket.updateTitle`  | `false`        | `false`           | `true`           | Repeating the same title has the same result.        |
@@ -224,8 +224,8 @@ and remote deployment remain a separate decision.
 - Run the official MCP Inspector against `http://127.0.0.1:<port>/mcp` and call all four tools.
 - Verify that `tools/list` exposes deterministic tool order, input/output schemas, and annotations.
 - Verify that invalid schema input never reaches a use case.
-- Verify that a tool-created ticket appears in the browser and that browser changes are visible through
-  `ticket.getAll`.
+- Verify that a tool-created ticket appears in the desktop app and that desktop changes are visible
+  through `ticket.getByProject`.
 
 The official TypeScript SDK guide uses MCP Inspector for manual server verification
 ([first-server guide](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/get-started/first-server.md)).

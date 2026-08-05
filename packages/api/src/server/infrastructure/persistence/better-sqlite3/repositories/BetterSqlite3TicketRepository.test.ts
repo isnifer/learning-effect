@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { BrowserCrypto } from '@effect/platform-browser'
 import { afterAll, beforeEach, describe, expect, layer } from '@effect/vitest'
 import Database from 'better-sqlite3'
+import { eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as Effect from 'effect/Effect'
@@ -50,7 +51,10 @@ describe('BetterSqlite3TicketRepository', () => {
         const ticketRepository = yield* TicketRepository
         const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
         const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
-        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const project = yield* projectRepository.create({
+          name: projectName,
+          key: projectKey,
+        })
         const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Test')
         const createdTicket = yield* ticketRepository.create({
           projectId: project.id,
@@ -86,7 +90,10 @@ describe('BetterSqlite3TicketRepository', () => {
         const ticketRepository = yield* TicketRepository
         const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
         const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
-        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const project = yield* projectRepository.create({
+          name: projectName,
+          key: projectKey,
+        })
         yield* projectRepository.archive({ id: project.id })
         const title = yield* Schema.decodeEffect(TicketTitle)('Test')
 
@@ -97,57 +104,6 @@ describe('BetterSqlite3TicketRepository', () => {
 
         expect(error).toStrictEqual(ProjectArchivedError.make({ id: project.id }))
         expect(ticketItems).toStrictEqual([])
-      })
-    )
-
-    it.effect('getAll: orders status groups and then UUIDv7 descending', () =>
-      Effect.gen(function* () {
-        const projectRepository = yield* ProjectRepository
-        const ticketRepository = yield* TicketRepository
-        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
-        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
-        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
-        const olderInProgressTitle = yield* Schema.decodeEffect(TicketTitle)('Older In Progress')
-        const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Ticket')
-        const newerInProgressTitle = yield* Schema.decodeEffect(TicketTitle)('Newer In Progress')
-        const completedTitle = yield* Schema.decodeEffect(TicketTitle)('Completed')
-
-        const olderInProgressTicket = yield* ticketRepository.create({
-          projectId: project.id,
-          title: olderInProgressTitle,
-        })
-        const olderInProgress = yield* ticketRepository.updateStatus({
-          id: olderInProgressTicket.id,
-          status: 'IN_PROGRESS',
-        })
-
-        yield* TestClock.adjust('1 millis')
-        const ticket = yield* ticketRepository.create({ projectId: project.id, title: ticketTitle })
-
-        yield* TestClock.adjust('1 millis')
-        const newerInProgressTicket = yield* ticketRepository.create({
-          projectId: project.id,
-          title: newerInProgressTitle,
-        })
-        const newerInProgress = yield* ticketRepository.updateStatus({
-          id: newerInProgressTicket.id,
-          status: 'IN_PROGRESS',
-        })
-
-        yield* TestClock.adjust('1 millis')
-        const completedTicket = yield* ticketRepository.create({
-          projectId: project.id,
-          title: completedTitle,
-        })
-        const completed = yield* ticketRepository.updateStatus({
-          id: completedTicket.id,
-          status: 'COMPLETED',
-        })
-
-        const tickets = yield* ticketRepository.getAll
-
-        expect(newerInProgress.id > olderInProgress.id).toBe(true)
-        expect(tickets).toStrictEqual([newerInProgress, olderInProgress, ticket, completed])
       })
     )
 
@@ -224,7 +180,10 @@ describe('BetterSqlite3TicketRepository', () => {
         const ticketRepository = yield* TicketRepository
         const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
         const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
-        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const project = yield* projectRepository.create({
+          name: projectName,
+          key: projectKey,
+        })
         const input = yield* Schema.decodeEffect(GetTicketsByProjectInput)({
           projectId: project.id,
         })
@@ -241,9 +200,15 @@ describe('BetterSqlite3TicketRepository', () => {
         const ticketRepository = yield* TicketRepository
         const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
         const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
-        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const project = yield* projectRepository.create({
+          name: projectName,
+          key: projectKey,
+        })
         const title = yield* Schema.decodeEffect(TicketTitle)('Archived Project Ticket')
-        const ticket = yield* ticketRepository.create({ projectId: project.id, title })
+        const ticket = yield* ticketRepository.create({
+          projectId: project.id,
+          title,
+        })
         yield* projectRepository.archive({ id: project.id })
         const input = yield* Schema.decodeEffect(GetTicketsByProjectInput)({
           projectId: project.id,
@@ -261,7 +226,10 @@ describe('BetterSqlite3TicketRepository', () => {
         const ticketRepository = yield* TicketRepository
         const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
         const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
-        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const project = yield* projectRepository.create({
+          name: projectName,
+          key: projectKey,
+        })
         const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Updated Ticket')
         const createdTicket = yield* ticketRepository.create({
           projectId: project.id,
@@ -271,13 +239,17 @@ describe('BetterSqlite3TicketRepository', () => {
           id: createdTicket.id,
           status: 'COMPLETED',
         })
-        const tickets = yield* ticketRepository.getAll
+        const ticketItem = client
+          .select()
+          .from(schema.tickets)
+          .where(eq(schema.tickets.id, createdTicket.id))
+          .get()
 
         expect(updatedTicket).toStrictEqual({
           ...createdTicket,
           status: 'COMPLETED',
         })
-        expect(tickets).toContainEqual(updatedTicket)
+        expect(ticketItem).toStrictEqual(updatedTicket)
       })
     )
 
@@ -300,7 +272,10 @@ describe('BetterSqlite3TicketRepository', () => {
         const ticketRepository = yield* TicketRepository
         const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
         const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
-        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const project = yield* projectRepository.create({
+          name: projectName,
+          key: projectKey,
+        })
         const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Original Ticket')
         const updatedTicketTitle = yield* Schema.decodeEffect(TicketTitle)('Updated Ticket')
         const createdTicket = yield* ticketRepository.create({
@@ -311,13 +286,17 @@ describe('BetterSqlite3TicketRepository', () => {
           id: createdTicket.id,
           title: updatedTicketTitle,
         })
-        const tickets = yield* ticketRepository.getAll
+        const ticketItem = client
+          .select()
+          .from(schema.tickets)
+          .where(eq(schema.tickets.id, createdTicket.id))
+          .get()
 
         expect(updatedTicket).toStrictEqual({
           ...createdTicket,
           title: updatedTicketTitle,
         })
-        expect(tickets).toContainEqual(updatedTicket)
+        expect(ticketItem).toStrictEqual(updatedTicket)
       })
     )
 

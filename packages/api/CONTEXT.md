@@ -18,6 +18,13 @@ The top-level boundary for related engineering work recorded by Red Docket. Ever
 domain entity belongs to exactly one Project. A Project records when it was created as part of its
 history.
 
+**Selected Project**:
+The Project currently selected in the desktop application. After Projects are loaded, Red Docket
+always has a selected Project when at least one Project exists. An absent selected Project means
+that the system contains no Projects. A stale selection is replaced with an existing Project and is
+not exposed as an application state.
+_Avoid_: Nullable selected Project, missing selected Project
+
 **Project key**:
 An immutable, human-readable identity assigned when a Project is created. A different Project key
 requires a different Project.

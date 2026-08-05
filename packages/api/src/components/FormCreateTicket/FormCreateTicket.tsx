@@ -1,15 +1,19 @@
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
 import * as Schema from 'effect/Schema'
+import * as Struct from 'effect/Struct'
 import { useForm } from 'react-hook-form'
 import { Button } from '#/components/ui/button'
 import { Field, FieldError, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
-import { CreateTicketInput, type TCreateTicketInput } from '#/shared/contracts/Ticket'
+import { CreateTicketInput } from '#/shared/contracts/Ticket'
+
+const FormCreateTicketInput = CreateTicketInput.mapFields(Struct.pick(['title']))
+type TFormCreateTicketInput = typeof FormCreateTicketInput.Type
 
 interface FormCreateTicketProps {
   isPending: boolean
   error: Error | null
-  onCreate: (input: TCreateTicketInput) => Promise<unknown>
+  onCreate: (input: TFormCreateTicketInput) => Promise<unknown>
 }
 
 export default function FormCreateTicket({ isPending, error, onCreate }: FormCreateTicketProps) {
@@ -20,7 +24,7 @@ export default function FormCreateTicket({ isPending, error, onCreate }: FormCre
     reset,
   } = useForm({
     defaultValues: { title: '' },
-    resolver: standardSchemaResolver(Schema.toStandardSchemaV1(CreateTicketInput)),
+    resolver: standardSchemaResolver(Schema.toStandardSchemaV1(FormCreateTicketInput)),
   })
 
   const onSubmit = handleSubmit(async input => {

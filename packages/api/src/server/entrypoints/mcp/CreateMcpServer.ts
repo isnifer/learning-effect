@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/server'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
 import CreateTicketTool from './CreateTicketTool'
-import GetTicketsTool from './GetTicketsTool'
+import GetTicketsByProjectTool from './GetTicketsByProjectTool'
 import UpdateTicketStatusTool from './UpdateTicketStatusTool'
 import UpdateTicketTitleTool from './UpdateTicketTitleTool'
 
@@ -12,7 +12,7 @@ const CreateMcpServer = (runPromise: AppRunPromise) => {
   })
 
   CreateTicketTool(server, runPromise)
-  GetTicketsTool(server, runPromise)
+  GetTicketsByProjectTool(server, runPromise)
   UpdateTicketStatusTool(server, runPromise)
   UpdateTicketTitleTool(server, runPromise)
 

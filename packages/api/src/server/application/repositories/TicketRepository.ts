@@ -25,7 +25,6 @@ export default class TicketRepository extends Context.Service<
     readonly create: (
       input: Pick<TTicket, 'projectId' | 'title'>
     ) => Effect.Effect<TTicket, ProjectArchivedError | TicketRepositoryError>
-    readonly getAll: Effect.Effect<ReadonlyArray<TTicket>, TicketRepositoryError>
     readonly getByProject: (
       input: TGetTicketsByProjectInput
     ) => Effect.Effect<ReadonlyArray<TTicket>, TicketRepositoryError>
