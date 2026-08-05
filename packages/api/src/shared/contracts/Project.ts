@@ -33,6 +33,9 @@ export type TCreateProjectInput = typeof CreateProjectInput.Type
 export const ArchiveProjectInput = Project.mapFields(Struct.pick(['id']))
 export type TArchiveProjectInput = typeof ArchiveProjectInput.Type
 
+export const RestoreProjectInput = Project.mapFields(Struct.pick(['id']))
+export type TRestoreProjectInput = typeof RestoreProjectInput.Type
+
 export const Projects = Schema.Array(Project)
 
 export default Project
