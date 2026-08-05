@@ -36,6 +36,10 @@ const config = {
             entry: 'src/electron/main.ts',
             config: 'vite.main.config.ts',
           },
+          {
+            entry: 'src/electron/preload.ts',
+            config: 'vite.preload.config.ts',
+          },
         ],
         renderer: [
           {

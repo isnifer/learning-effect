@@ -19,6 +19,7 @@
     "start": "NODE_ENV=production tsx src/server.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:e2e": "pnpm electron:package && playwright test",
     "verify": "pnpm typecheck && pnpm test && pnpm build",
     "preview": "pnpm build && pnpm start",
     "generate-routes": "tsr generate"

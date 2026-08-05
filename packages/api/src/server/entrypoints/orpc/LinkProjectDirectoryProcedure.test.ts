@@ -4,6 +4,7 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
 import * as Schema from 'effect/Schema'
+import ProjectDirectoryPathNotLocalError from '#/server/application/errors/ProjectDirectoryPathNotLocalError'
 import ProjectRepository, {
   ProjectArchivedError,
   ProjectNotFoundError,
@@ -12,7 +13,6 @@ import ProjectRepository, {
 import ProjectRepositoryStub from '#/server/application/repositories/testing/ProjectRepositoryStub'
 import TicketRepositoryStub from '#/server/application/repositories/testing/TicketRepositoryStub'
 import TicketRepository from '#/server/application/repositories/TicketRepository'
-import { ProjectDirectoryPathNotLocalError } from '#/server/application/usecases/LinkProjectDirectory'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
 import { LinkProjectDirectoryInput } from '#/shared/contracts/Project'
 import LinkProjectDirectoryProcedure from './LinkProjectDirectoryProcedure'

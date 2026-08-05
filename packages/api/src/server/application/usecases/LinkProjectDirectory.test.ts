@@ -2,6 +2,7 @@ import { describe, expect, layer } from '@effect/vitest'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
+import ProjectDirectoryPathNotLocalError from '#/server/application/errors/ProjectDirectoryPathNotLocalError'
 import ProjectRepository, {
   ProjectArchivedError,
   ProjectNotFoundError,
@@ -9,7 +10,7 @@ import ProjectRepository, {
 } from '#/server/application/repositories/ProjectRepository'
 import ProjectRepositoryStub from '#/server/application/repositories/testing/ProjectRepositoryStub'
 import { LinkProjectDirectoryInput } from '#/shared/contracts/Project'
-import LinkProjectDirectory, { ProjectDirectoryPathNotLocalError } from './LinkProjectDirectory'
+import LinkProjectDirectory from './LinkProjectDirectory'
 
 describe('LinkProjectDirectory', () => {
   const input = Schema.decodeUnknownSync(LinkProjectDirectoryInput)({

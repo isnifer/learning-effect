@@ -2,11 +2,12 @@ import { describe, expect, layer } from '@effect/vitest'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Schema from 'effect/Schema'
+import ProjectDirectoryPathNotLocalError from '#/server/application/errors/ProjectDirectoryPathNotLocalError'
 import ProjectRepository, {
   ProjectRepositoryError,
 } from '#/server/application/repositories/ProjectRepository'
 import ProjectRepositoryStub from '#/server/application/repositories/testing/ProjectRepositoryStub'
-import Project from '#/shared/contracts/Project'
+import Project, { CreateProjectInput, ProjectDirectoryPath } from '#/shared/contracts/Project'
 import CreateProject from './CreateProject'
 
 describe('CreateProject', () => {
@@ -17,6 +18,9 @@ describe('CreateProject', () => {
     createdAt: 1785835769172,
     archivedAt: null,
   })
+  const absolutePath = Schema.decodeUnknownSync(ProjectDirectoryPath)(
+    process.platform === 'win32' ? 'C:\\red-docket' : '/Users/isnifer/www/red-docket'
+  )
 
   const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
@@ -25,6 +29,7 @@ describe('CreateProject', () => {
         expect(input).toStrictEqual({
           name: expectedProject.name,
           key: expectedProject.key,
+          absolutePath,
         })
 
         return expectedProject
@@ -37,12 +42,39 @@ describe('CreateProject', () => {
         const result = yield* CreateProject({
           name: expectedProject.name,
           key: expectedProject.key,
+          absolutePath,
         })
 
         expect(result).toBe(expectedProject)
       })
     )
   })
+
+  const absolutePathFromAnotherSystem = Schema.decodeUnknownSync(ProjectDirectoryPath)(
+    process.platform === 'win32' ? '/red-docket' : 'C:\\red-docket'
+  )
+  const pathFromAnotherSystem = Schema.decodeUnknownSync(CreateProjectInput)({
+    name: expectedProject.name,
+    key: expectedProject.key,
+    absolutePath: absolutePathFromAnotherSystem,
+  })
+
+  layer(Layer.succeed(ProjectRepository)(ProjectRepositoryStub))(
+    'when the directory path is not local to the current system',
+    it => {
+      it.effect('create: fails with ProjectDirectoryPathNotLocalError', () =>
+        Effect.gen(function* () {
+          const error = yield* CreateProject(pathFromAnotherSystem).pipe(Effect.flip)
+
+          expect(error).toStrictEqual(
+            ProjectDirectoryPathNotLocalError.make({
+              absolutePath: absolutePathFromAnotherSystem,
+            })
+          )
+        })
+      )
+    }
+  )
 
   const repositoryError = ProjectRepositoryError.make({
     operation: 'create',

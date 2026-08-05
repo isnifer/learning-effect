@@ -4,6 +4,7 @@ import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as ManagedRuntime from 'effect/ManagedRuntime'
 import * as Schema from 'effect/Schema'
+import ProjectDirectoryPathNotLocalError from '#/server/application/errors/ProjectDirectoryPathNotLocalError'
 import ProjectRepository, {
   ProjectKeyAlreadyExistsError,
   ProjectRepositoryError,
@@ -12,7 +13,7 @@ import ProjectRepositoryStub from '#/server/application/repositories/testing/Pro
 import TicketRepositoryStub from '#/server/application/repositories/testing/TicketRepositoryStub'
 import TicketRepository from '#/server/application/repositories/TicketRepository'
 import type { AppRunPromise } from '#/server/runtime/AppRuntime'
-import Project from '#/shared/contracts/Project'
+import Project, { CreateProjectInput, ProjectDirectoryPath } from '#/shared/contracts/Project'
 import CreateProjectProcedure from './CreateProjectProcedure'
 
 describe('CreateProjectProcedure', () => {
@@ -24,21 +25,25 @@ describe('CreateProjectProcedure', () => {
     archivedAt: null,
   })
 
-  const callCreateProject = (runPromise: AppRunPromise) =>
-    call(
-      CreateProjectProcedure,
-      {
-        name: expectedProject.name,
-        key: expectedProject.key,
-      },
-      {
-        context: { runPromise },
-      }
-    )
+  const input = Schema.decodeUnknownSync(CreateProjectInput)({
+    name: expectedProject.name,
+    key: expectedProject.key,
+    absolutePath: process.platform === 'win32' ? 'C:\\red-docket' : '/Users/isnifer/www/red-docket',
+  })
+
+  const callCreateProject = (runPromise: AppRunPromise, procedureInput: typeof input = input) =>
+    call(CreateProjectProcedure, procedureInput, {
+      context: { runPromise },
+    })
 
   const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
-    create: () => Effect.succeed(expectedProject),
+    create: repositoryInput =>
+      Effect.sync(() => {
+        expect(repositoryInput).toStrictEqual(input)
+
+        return expectedProject
+      }),
   })
   const TicketRepositoryUnused = Layer.succeed(TicketRepository)(TicketRepositoryStub)
 
@@ -51,6 +56,34 @@ describe('CreateProjectProcedure', () => {
       const result = await callCreateProject(SuccessRuntime.runPromise)
 
       expect(result).toStrictEqual(expectedProject)
+    })
+  })
+
+  describe('when the directory path is not local to the current system', () => {
+    it('create: maps ProjectDirectoryPathNotLocalError to BAD_REQUEST', async () => {
+      const absolutePathFromAnotherSystem = Schema.decodeUnknownSync(ProjectDirectoryPath)(
+        process.platform === 'win32' ? '/red-docket' : 'C:\\red-docket'
+      )
+      const pathFromAnotherSystem = Schema.decodeUnknownSync(CreateProjectInput)({
+        name: expectedProject.name,
+        key: expectedProject.key,
+        absolutePath: absolutePathFromAnotherSystem,
+      })
+
+      const error = await callCreateProject(SuccessRuntime.runPromise, pathFromAnotherSystem).catch(
+        cause => cause
+      )
+
+      if (!(error instanceof ORPCError)) {
+        throw error
+      }
+
+      expect(error.code).toBe('BAD_REQUEST')
+      expect(error.cause).toStrictEqual(
+        ProjectDirectoryPathNotLocalError.make({
+          absolutePath: absolutePathFromAnotherSystem,
+        })
+      )
     })
   })
 

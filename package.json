@@ -29,6 +29,7 @@
     "lint-staged": "oxlint $(git diff --cached --name-only) -f json --max-warnings=0",
     "lint-staged:fix": "oxlint $(git diff --cached --name-only) --fix -f json --max-warnings=0",
     "test": "pnpm --filter red-docket test",
+    "test:e2e": "pnpm --filter red-docket test:e2e",
     "verify": "pnpm --filter red-docket verify"
   },
   "devDependencies": {

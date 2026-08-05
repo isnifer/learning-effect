@@ -54,6 +54,7 @@ interface SelectProps<TValue extends Key> {
   size?: 'sm' | 'default'
   variant?: TSelectVariant
   triggerClassName?: string
+  testId?: string
 }
 
 export default function Select<TValue extends Key>({
@@ -65,6 +66,7 @@ export default function Select<TValue extends Key>({
   size,
   variant,
   triggerClassName,
+  testId,
 }: SelectProps<TValue>) {
   const selectedOption = options.find(option => option.value === value)
 
@@ -82,6 +84,7 @@ export default function Select<TValue extends Key>({
       }}>
       <SelectTrigger
         className={cn(selectTriggerVariants({ variant }), triggerClassName)}
+        data-testid={testId}
         size={size}>
         <SelectValue>{() => selectedOption?.label}</SelectValue>
       </SelectTrigger>

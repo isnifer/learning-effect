@@ -34,17 +34,31 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           const createdAt = yield* Clock.currentTimeMillis
 
           const projectItem = yield* Effect.try(() =>
-            db
-              .insert(projects)
-              .values({
-                id,
-                name: input.name,
-                key: input.key,
-                createdAt,
-                archivedAt: null,
-              })
-              .returning()
-              .get()
+            db.transaction(transaction => {
+              const createdProjectItem = transaction
+                .insert(projects)
+                .values({
+                  id,
+                  name: input.name,
+                  key: input.key,
+                  createdAt,
+                  archivedAt: null,
+                })
+                .returning()
+                .get()
+
+              if (input.absolutePath) {
+                transaction
+                  .insert(projectDirectories)
+                  .values({
+                    projectId: createdProjectItem.id,
+                    absolutePath: input.absolutePath,
+                  })
+                  .run()
+              }
+
+              return createdProjectItem
+            })
           )
 
           return yield* Schema.decodeEffect(Project)(projectItem)

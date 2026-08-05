@@ -77,7 +77,14 @@ const StartHttpServer = async (options: TStartHttpServerOptions) => {
     server.once('error', reject)
     server.listen(options.port, options.host, () => {
       server.off('error', reject)
-      resolve(`http://${options.host}:${options.port}`)
+      const address = server.address()
+
+      if (!address || typeof address === 'string') {
+        reject(new Error('Could not resolve the HTTP server address'))
+        return
+      }
+
+      resolve(`http://${options.host}:${address.port}`)
     })
   })
 

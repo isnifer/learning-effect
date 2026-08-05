@@ -12,6 +12,8 @@ const CreateProjectProcedure = BaseProcedure.input(Schema.toStandardSchemaV1(Cre
     CreateProject(input).pipe(
       Effect.catch(
         Match.valueTags({
+          ProjectDirectoryPathNotLocalError: cause =>
+            Effect.fail(new ORPCError('BAD_REQUEST', { cause })),
           ProjectKeyAlreadyExistsError: cause => Effect.fail(new ORPCError('CONFLICT', { cause })),
           ProjectRepositoryError: cause =>
             Effect.fail(new ORPCError('INTERNAL_SERVER_ERROR', { cause })),

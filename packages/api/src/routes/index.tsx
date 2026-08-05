@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import * as Schema from 'effect/Schema'
-import { ListTodoIcon } from 'lucide-react'
+import { ListTodoIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
+import DialogCreateProject from '#/components/DialogCreateProject'
 import Empty from '#/components/Empty'
 import FormCreateTicket from '#/components/FormCreateTicket'
 import FormUpdateTicketTitle from '#/components/FormUpdateTicketTitle'
@@ -26,6 +27,7 @@ import {
   useUpdateTicketStatus,
   useUpdateTicketTitle,
 } from '#/store/queries/ticketQueries'
+import { e2eTestIds } from '#/testing/e2eTestIds'
 
 export const Route = createFileRoute('/')({ component: TicketScreen })
 
@@ -68,11 +70,21 @@ function TicketScreen() {
       {projectsQuery.isSuccess && !firstProject && (
         <div className="mx-auto w-full max-w-4xl">
           <Card>
-            <CardContent>
+            <CardContent data-testid={e2eTestIds.project.empty}>
               <Empty
                 icon={<ListTodoIcon />}
                 title="No Projects"
                 description="Create the first Project to start working with Tickets."
+                action={
+                  <DialogCreateProject
+                    trigger={
+                      <Button data-testid={e2eTestIds.project.create.emptyTrigger}>
+                        <PlusIcon data-icon="inline-start" />
+                        Create Project
+                      </Button>
+                    }
+                  />
+                }
               />
             </CardContent>
           </Card>
@@ -124,13 +136,25 @@ function TicketWorkspace({ projects, initialProject }: TicketWorkspaceProps) {
           </p>
         </div>
 
-        <Select
-          ariaLabel="Select Project"
-          value={selectedProject.id}
-          options={projectOptions}
-          triggerClassName="w-full sm:w-64"
-          onChange={selectProject}
-        />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Select
+            ariaLabel="Select Project"
+            testId={e2eTestIds.project.selector}
+            value={selectedProject.id}
+            options={projectOptions}
+            triggerClassName="w-full sm:w-64"
+            onChange={selectProject}
+          />
+          <DialogCreateProject
+            trigger={
+              <Button variant="outline" data-testid={e2eTestIds.project.create.workspaceTrigger}>
+                <PlusIcon data-icon="inline-start" />
+                New Project
+              </Button>
+            }
+            onCreated={setSelectedProject}
+          />
+        </div>
       </header>
 
       <Card>

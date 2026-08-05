@@ -1,6 +1,14 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { app, BrowserWindow } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  type IpcMainInvokeEvent,
+  type OpenDialogOptions,
+} from 'electron'
+import { SELECT_PROJECT_DIRECTORY_CHANNEL } from './DesktopApi'
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined
 
@@ -19,7 +27,7 @@ async function startBackend() {
 
   return StartHttpServer({
     host: '127.0.0.1',
-    port: 3000,
+    port: Number(process.env.PORT ?? 3000),
     staticDirectory: app.isPackaged
       ? fileURLToPath(new URL('../renderer/main_window', import.meta.url))
       : undefined,
@@ -35,6 +43,7 @@ async function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      preload: join(__dirname, 'preload.js'),
       sandbox: true,
     },
   })
@@ -53,6 +62,20 @@ async function createWindow() {
   await window.loadURL(httpServer.url)
 }
 
+async function selectProjectDirectory(event: IpcMainInvokeEvent) {
+  const window = BrowserWindow.fromWebContents(event.sender)
+  const options: OpenDialogOptions = {
+    title: 'Select Project directory',
+    buttonLabel: 'Select directory',
+    properties: ['openDirectory', 'createDirectory'],
+  }
+  const result = window
+    ? await dialog.showOpenDialog(window, options)
+    : await dialog.showOpenDialog(options)
+
+  return result.canceled ? undefined : result.filePaths[0]
+}
+
 async function main() {
   app.on('second-instance', () => {
     const window = BrowserWindow.getAllWindows()[0]
@@ -65,6 +88,8 @@ async function main() {
   })
 
   await app.whenReady()
+
+  ipcMain.handle(SELECT_PROJECT_DIRECTORY_CHANNEL, selectProjectDirectory)
 
   if (process.platform === 'darwin' && !app.isPackaged) {
     app.dock?.setIcon(join(app.getAppPath(), 'assets/icon.png'))

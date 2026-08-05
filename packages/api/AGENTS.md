@@ -28,6 +28,7 @@ typing.
 - [Name oRPC routers by entity and repository operation](.agents/rules/orpc-router-naming.md)
 - [Place each schema-derived type next to its schema](.agents/rules/schema-derived-type-placement.md)
 - [Organize TanStack Query hooks](.agents/rules/tanstack-query-hooks.md)
+- [Organize Electron E2E tests](.agents/rules/electron-e2e-tests.md)
 - [Prefer truthiness checks for absent values](.agents/rules/truthiness-checks.md)
 - [Prefer shadcn components](.agents/rules/shadcn/component-selection.md)
 

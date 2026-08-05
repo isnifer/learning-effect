@@ -13,10 +13,12 @@ import ProjectRepository, {
   ProjectDirectoryNotLinkedError,
   ProjectKeyAlreadyExistsError,
   ProjectNotFoundError,
+  ProjectRepositoryError,
 } from '#/server/application/repositories/ProjectRepository'
 import {
   GetProjectDirectoriesInput,
   LinkProjectDirectoryInput,
+  ProjectDirectoryPath,
   ProjectDirectoryPaths,
   ProjectId,
   ProjectKey,
@@ -44,7 +46,9 @@ describe('BetterSqlite3ProjectRepository', () => {
   migrate(client, { migrationsFolder })
 
   beforeEach(() => {
-    database.exec('DELETE FROM project_directories; DELETE FROM projects')
+    database.exec(
+      'DROP TRIGGER IF EXISTS fail_project_directory_insert; DELETE FROM project_directories; DELETE FROM projects'
+    )
   })
   afterAll(() => database.close())
 
@@ -61,6 +65,52 @@ describe('BetterSqlite3ProjectRepository', () => {
         expect(project.key).toBe(key)
         expect(project.createdAt).toBeGreaterThanOrEqual(0)
         expect(project.archivedAt).toBeNull()
+        expect(client.select().from(schema.projectDirectories).all()).toStrictEqual([])
+      })
+    )
+
+    it.effect('create: atomically inserts a Project with its directory', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const absolutePath = yield* Schema.decodeEffect(ProjectDirectoryPath)(
+          '/Users/isnifer/www/red-docket'
+        )
+
+        const project = yield* projectRepository.create({ name, key, absolutePath })
+        const projectDirectoryItems = client.select().from(schema.projectDirectories).all()
+
+        expect(projectDirectoryItems).toStrictEqual([
+          {
+            projectId: project.id,
+            absolutePath,
+          },
+        ])
+      })
+    )
+
+    it.effect('create: rolls back the Project when inserting its directory fails', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const name = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const key = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const absolutePath = yield* Schema.decodeEffect(ProjectDirectoryPath)(
+          '/Users/isnifer/www/red-docket'
+        )
+        database.exec(`
+          CREATE TRIGGER fail_project_directory_insert
+          BEFORE INSERT ON project_directories
+          BEGIN
+            SELECT RAISE(ABORT, 'Project directory insert failed');
+          END
+        `)
+
+        const error = yield* projectRepository.create({ name, key, absolutePath }).pipe(Effect.flip)
+
+        expect(error).toBeInstanceOf(ProjectRepositoryError)
+        expect(client.select().from(schema.projects).all()).toStrictEqual([])
+        expect(client.select().from(schema.projectDirectories).all()).toStrictEqual([])
       })
     )
 

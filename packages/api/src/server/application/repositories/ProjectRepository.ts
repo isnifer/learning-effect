@@ -5,6 +5,7 @@ import {
   ProjectId,
   ProjectDirectoryPath,
   ProjectKey,
+  type TCreateProjectInput,
   type TGetProjectDirectoriesInput,
   type TLinkProjectDirectoryInput,
   type TProject,
@@ -53,7 +54,7 @@ export default class ProjectRepository extends Context.Service<
   ProjectRepository,
   {
     readonly create: (
-      input: Pick<TProject, 'name' | 'key'>
+      input: TCreateProjectInput
     ) => Effect.Effect<TProject, ProjectKeyAlreadyExistsError | ProjectRepositoryError>
     readonly getActive: Effect.Effect<ReadonlyArray<TProject>, ProjectRepositoryError>
     readonly getById: (

@@ -54,7 +54,12 @@ const Project = Schema.Struct({
 })
 export type TProject = typeof Project.Type
 
-export const CreateProjectInput = Project.mapFields(Struct.pick(['name', 'key']))
+const CreateProjectFields = Project.mapFields(Struct.pick(['name', 'key'])).fields
+
+export const CreateProjectInput = Schema.Struct({
+  ...CreateProjectFields,
+  absolutePath: Schema.optional(ProjectDirectoryPath),
+})
 export type TCreateProjectInput = typeof CreateProjectInput.Type
 
 export const ArchiveProjectInput = Project.mapFields(Struct.pick(['id']))
