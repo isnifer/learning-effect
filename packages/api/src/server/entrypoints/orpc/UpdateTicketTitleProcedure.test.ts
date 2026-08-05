@@ -34,13 +34,13 @@ describe('UpdateTicketTitleProcedure', () => {
       context: { runPromise },
     })
 
-  const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateTitle: () => Effect.succeed(expectedTicket),
   })
-  const TestProjectRepository = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
+  const ProjectRepositoryUnused = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
   const SuccessRuntime = ManagedRuntime.make(
-    Layer.mergeAll(TestProjectRepository, SucceedingTicketRepository)
+    Layer.mergeAll(ProjectRepositoryUnused, TicketRepositorySucceeded)
   )
 
   it('updateTitle: returns the updated Ticket when the repository succeeds', async () => {
@@ -50,12 +50,12 @@ describe('UpdateTicketTitleProcedure', () => {
   })
 
   const notFoundError = TicketNotFoundError.make({ id: expectedTicket.id })
-  const MissingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryMissing = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateTitle: () => Effect.fail(notFoundError),
   })
   const MissingTicketRuntime = ManagedRuntime.make(
-    Layer.mergeAll(TestProjectRepository, MissingTicketRepository)
+    Layer.mergeAll(ProjectRepositoryUnused, TicketRepositoryMissing)
   )
 
   it('updateTitle: maps TicketNotFoundError to NOT_FOUND', async () => {
@@ -73,12 +73,12 @@ describe('UpdateTicketTitleProcedure', () => {
     operation: 'updateTitle',
     cause: new Error('Repository unavailable'),
   })
-  const FailingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryFailed = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateTitle: () => Effect.fail(repositoryError),
   })
   const FailureRuntime = ManagedRuntime.make(
-    Layer.mergeAll(TestProjectRepository, FailingTicketRepository)
+    Layer.mergeAll(ProjectRepositoryUnused, TicketRepositoryFailed)
   )
 
   it('updateTitle: maps TicketRepositoryError to INTERNAL_SERVER_ERROR', async () => {

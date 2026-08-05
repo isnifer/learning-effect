@@ -24,7 +24,7 @@ describe('UpdateTicketTitle', () => {
     title: expectedTicket.title,
   }
 
-  const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateTitle: repositoryInput =>
       Effect.sync(() => {
@@ -34,7 +34,7 @@ describe('UpdateTicketTitle', () => {
       }),
   })
 
-  layer(SucceedingTicketRepository)('when the repository succeeds', it => {
+  layer(TicketRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('updateTitle: returns the updated Ticket', () =>
       Effect.gen(function* () {
         const result = yield* UpdateTicketTitle(input)
@@ -45,12 +45,12 @@ describe('UpdateTicketTitle', () => {
   })
 
   const notFoundError = TicketNotFoundError.make({ id: expectedTicket.id })
-  const MissingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryMissing = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateTitle: () => Effect.fail(notFoundError),
   })
 
-  layer(MissingTicketRepository)('when the Ticket does not exist', it => {
+  layer(TicketRepositoryMissing)('when the Ticket does not exist', it => {
     it.effect('updateTitle: preserves TicketNotFoundError', () =>
       Effect.gen(function* () {
         const error = yield* UpdateTicketTitle(input).pipe(Effect.flip)
@@ -64,12 +64,12 @@ describe('UpdateTicketTitle', () => {
     operation: 'updateTitle',
     cause: new Error('Repository unavailable'),
   })
-  const FailingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryFailed = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateTitle: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingTicketRepository)('when the repository fails', it => {
+  layer(TicketRepositoryFailed)('when the repository fails', it => {
     it.effect('updateTitle: preserves TicketRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* UpdateTicketTitle(input).pipe(Effect.flip)

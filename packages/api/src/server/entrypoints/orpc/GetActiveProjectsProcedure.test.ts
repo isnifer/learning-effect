@@ -37,14 +37,14 @@ describe('GetActiveProjectsProcedure', () => {
       context: { runPromise },
     })
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getActive: Effect.succeed(expectedProjects),
   })
-  const TestTicketRepository = Layer.succeed(TicketRepository)(TicketRepositoryStub)
+  const TicketRepositoryUnused = Layer.succeed(TicketRepository)(TicketRepositoryStub)
 
   const SuccessRuntime = ManagedRuntime.make(
-    Layer.mergeAll(SucceedingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositorySucceeded, TicketRepositoryUnused)
   )
 
   describe('when the repository succeeds', () => {
@@ -60,13 +60,13 @@ describe('GetActiveProjectsProcedure', () => {
     cause: new Error('Repository unavailable'),
   })
 
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getActive: Effect.fail(repositoryError),
   })
 
   const FailureRuntime = ManagedRuntime.make(
-    Layer.mergeAll(FailingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryFailed, TicketRepositoryUnused)
   )
 
   describe('when the repository fails', () => {

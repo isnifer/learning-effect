@@ -18,7 +18,7 @@ describe('CreateProject', () => {
     archivedAt: null,
   })
 
-  const TestProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     create: input =>
       Effect.sync(() => {
@@ -31,7 +31,7 @@ describe('CreateProject', () => {
       }),
   })
 
-  layer(TestProjectRepository)('when the repository succeeds', it => {
+  layer(ProjectRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('create: creates a Project through the repository', () =>
       Effect.gen(function* () {
         const result = yield* CreateProject({
@@ -49,12 +49,12 @@ describe('CreateProject', () => {
     cause: new Error('Repository unavailable'),
   })
 
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     create: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingProjectRepository)('when the repository fails', it => {
+  layer(ProjectRepositoryFailed)('when the repository fails', it => {
     it.effect('create: preserves ProjectRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* CreateProject({

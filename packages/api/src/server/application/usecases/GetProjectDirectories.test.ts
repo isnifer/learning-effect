@@ -19,7 +19,7 @@ describe('GetProjectDirectories', () => {
     '/Users/isnifer/www/red-docket',
   ])
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getDirectories: repositoryInput =>
       Effect.sync(() => {
@@ -29,7 +29,7 @@ describe('GetProjectDirectories', () => {
       }),
   })
 
-  layer(SucceedingProjectRepository)('when the repository succeeds', it => {
+  layer(ProjectRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('getDirectories: returns Project directory paths from the repository', () =>
       Effect.gen(function* () {
         const result = yield* GetProjectDirectories(input)
@@ -40,12 +40,12 @@ describe('GetProjectDirectories', () => {
   })
 
   const notFoundError = ProjectNotFoundError.make({ id: input.id })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getDirectories: () => Effect.fail(notFoundError),
   })
 
-  layer(MissingProjectRepository)('when the Project does not exist', it => {
+  layer(ProjectRepositoryMissing)('when the Project does not exist', it => {
     it.effect('getDirectories: preserves ProjectNotFoundError', () =>
       Effect.gen(function* () {
         const error = yield* GetProjectDirectories(input).pipe(Effect.flip)
@@ -59,12 +59,12 @@ describe('GetProjectDirectories', () => {
     operation: 'getDirectories',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getDirectories: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingProjectRepository)('when the repository fails', it => {
+  layer(ProjectRepositoryFailed)('when the repository fails', it => {
     it.effect('getDirectories: preserves ProjectRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* GetProjectDirectories(input).pipe(Effect.flip)

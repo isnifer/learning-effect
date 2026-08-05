@@ -32,14 +32,14 @@ describe('CreateTicketProcedure', () => {
       }
     )
 
-  const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     create: () => Effect.succeed(expectedTicket),
   })
-  const TestProjectRepository = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
+  const ProjectRepositoryUnused = Layer.succeed(ProjectRepository)(ProjectRepositoryStub)
 
   const SuccessRuntime = ManagedRuntime.make(
-    Layer.mergeAll(TestProjectRepository, SucceedingTicketRepository)
+    Layer.mergeAll(ProjectRepositoryUnused, TicketRepositorySucceeded)
   )
 
   describe('when the repository succeeds', () => {
@@ -55,13 +55,13 @@ describe('CreateTicketProcedure', () => {
     cause: new Error('Repository unavailable'),
   })
 
-  const FailingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryFailed = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     create: () => Effect.fail(repositoryError),
   })
 
   const FailureRuntime = ManagedRuntime.make(
-    Layer.mergeAll(TestProjectRepository, FailingTicketRepository)
+    Layer.mergeAll(ProjectRepositoryUnused, TicketRepositoryFailed)
   )
 
   describe('when the repository fails', () => {

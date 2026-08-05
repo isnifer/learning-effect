@@ -21,7 +21,7 @@ describe('ArchiveProject', () => {
 
   const input = { id: expectedProject.id }
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     archive: repositoryInput =>
       Effect.sync(() => {
@@ -31,7 +31,7 @@ describe('ArchiveProject', () => {
       }),
   })
 
-  layer(SucceedingProjectRepository)('when the repository succeeds', it => {
+  layer(ProjectRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('archive: returns the archived Project', () =>
       Effect.gen(function* () {
         const result = yield* ArchiveProject(input)
@@ -42,12 +42,12 @@ describe('ArchiveProject', () => {
   })
 
   const notFoundError = ProjectNotFoundError.make({ id: expectedProject.id })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     archive: () => Effect.fail(notFoundError),
   })
 
-  layer(MissingProjectRepository)('when the Project does not exist', it => {
+  layer(ProjectRepositoryMissing)('when the Project does not exist', it => {
     it.effect('archive: preserves ProjectNotFoundError', () =>
       Effect.gen(function* () {
         const error = yield* ArchiveProject(input).pipe(Effect.flip)
@@ -61,12 +61,12 @@ describe('ArchiveProject', () => {
     operation: 'archive',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     archive: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingProjectRepository)('when the repository fails', it => {
+  layer(ProjectRepositoryFailed)('when the repository fails', it => {
     it.effect('archive: preserves ProjectRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* ArchiveProject(input).pipe(Effect.flip)

@@ -1,6 +1,10 @@
 {
   "$schema": "./node_modules/@effect/tsgo/oxlint-schema.json",
-  "ignorePatterns": ["packages/api/src/components/ui/**", "packages/api/src/routeTree.gen.ts"],
+  "ignorePatterns": [
+    "packages/api/migrations/**",
+    "packages/api/src/components/ui/**",
+    "packages/api/src/routeTree.gen.ts"
+  ],
   "plugins": ["react", "effecttsgo"],
   "options": {
     "typeAware": true

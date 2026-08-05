@@ -25,12 +25,12 @@ describe('GetTickets', () => {
     },
   ])
 
-  const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     getAll: Effect.succeed(expectedTickets),
   })
 
-  layer(SucceedingTicketRepository)('when the repository succeeds', it => {
+  layer(TicketRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('getAll: returns Tickets from the repository', () =>
       Effect.gen(function* () {
         const result = yield* GetTickets()
@@ -45,12 +45,12 @@ describe('GetTickets', () => {
     cause: new Error('Repository unavailable'),
   })
 
-  const FailingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryFailed = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     getAll: Effect.fail(repositoryError),
   })
 
-  layer(FailingTicketRepository)('when the repository fails', it => {
+  layer(TicketRepositoryFailed)('when the repository fails', it => {
     it.effect('getAll: preserves TicketRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* GetTickets().pipe(Effect.flip)

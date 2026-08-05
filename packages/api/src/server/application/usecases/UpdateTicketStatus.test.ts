@@ -24,7 +24,7 @@ describe('UpdateTicketStatus', () => {
     status: expectedTicket.status,
   }
 
-  const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateStatus: repositoryInput =>
       Effect.sync(() => {
@@ -34,7 +34,7 @@ describe('UpdateTicketStatus', () => {
       }),
   })
 
-  layer(SucceedingTicketRepository)('when the repository succeeds', it => {
+  layer(TicketRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('updateStatus: returns the updated Ticket', () =>
       Effect.gen(function* () {
         const result = yield* UpdateTicketStatus(input)
@@ -45,12 +45,12 @@ describe('UpdateTicketStatus', () => {
   })
 
   const notFoundError = TicketNotFoundError.make({ id: expectedTicket.id })
-  const MissingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryMissing = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateStatus: () => Effect.fail(notFoundError),
   })
 
-  layer(MissingTicketRepository)('when the Ticket does not exist', it => {
+  layer(TicketRepositoryMissing)('when the Ticket does not exist', it => {
     it.effect('updateStatus: preserves TicketNotFoundError', () =>
       Effect.gen(function* () {
         const error = yield* UpdateTicketStatus(input).pipe(Effect.flip)
@@ -64,12 +64,12 @@ describe('UpdateTicketStatus', () => {
     operation: 'updateStatus',
     cause: new Error('Repository unavailable'),
   })
-  const FailingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryFailed = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     updateStatus: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingTicketRepository)('when the repository fails', it => {
+  layer(TicketRepositoryFailed)('when the repository fails', it => {
     it.effect('updateStatus: preserves TicketRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* UpdateTicketStatus(input).pipe(Effect.flip)

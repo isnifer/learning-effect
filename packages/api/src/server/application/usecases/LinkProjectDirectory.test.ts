@@ -17,7 +17,7 @@ describe('LinkProjectDirectory', () => {
     absolutePath: '/Users/isnifer/www/learning-effect',
   })
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: repositoryInput =>
       Effect.sync(() => {
@@ -27,7 +27,7 @@ describe('LinkProjectDirectory', () => {
       }),
   })
 
-  layer(SucceedingProjectRepository)('when the repository succeeds', it => {
+  layer(ProjectRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('linkDirectory: returns the linked Project directory', () =>
       Effect.gen(function* () {
         const result = yield* LinkProjectDirectory(input)
@@ -60,12 +60,12 @@ describe('LinkProjectDirectory', () => {
   )
 
   const notFoundError = ProjectNotFoundError.make({ id: input.projectId })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: () => Effect.fail(notFoundError),
   })
 
-  layer(MissingProjectRepository)('when the Project does not exist', it => {
+  layer(ProjectRepositoryMissing)('when the Project does not exist', it => {
     it.effect('linkDirectory: preserves ProjectNotFoundError', () =>
       Effect.gen(function* () {
         const error = yield* LinkProjectDirectory(input).pipe(Effect.flip)
@@ -76,12 +76,12 @@ describe('LinkProjectDirectory', () => {
   })
 
   const archivedError = ProjectArchivedError.make({ id: input.projectId })
-  const ArchivedProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryArchived = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: () => Effect.fail(archivedError),
   })
 
-  layer(ArchivedProjectRepository)('when the Project is archived', it => {
+  layer(ProjectRepositoryArchived)('when the Project is archived', it => {
     it.effect('linkDirectory: preserves ProjectArchivedError', () =>
       Effect.gen(function* () {
         const error = yield* LinkProjectDirectory(input).pipe(Effect.flip)
@@ -95,12 +95,12 @@ describe('LinkProjectDirectory', () => {
     operation: 'linkDirectory',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingProjectRepository)('when the repository fails', it => {
+  layer(ProjectRepositoryFailed)('when the repository fails', it => {
     it.effect('linkDirectory: preserves ProjectRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* LinkProjectDirectory(input).pipe(Effect.flip)

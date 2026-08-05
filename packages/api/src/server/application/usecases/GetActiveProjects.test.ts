@@ -25,12 +25,12 @@ describe('GetActiveProjects', () => {
     },
   ])
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getActive: Effect.succeed(expectedProjects),
   })
 
-  layer(SucceedingProjectRepository)('when the repository succeeds', it => {
+  layer(ProjectRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('getActive: returns active Projects from the repository', () =>
       Effect.gen(function* () {
         const result = yield* GetActiveProjects()
@@ -45,12 +45,12 @@ describe('GetActiveProjects', () => {
     cause: new Error('Repository unavailable'),
   })
 
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getActive: Effect.fail(repositoryError),
   })
 
-  layer(FailingProjectRepository)('when the repository fails', it => {
+  layer(ProjectRepositoryFailed)('when the repository fails', it => {
     it.effect('getActive: preserves ProjectRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* GetActiveProjects().pipe(Effect.flip)

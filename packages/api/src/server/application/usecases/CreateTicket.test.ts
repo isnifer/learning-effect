@@ -16,7 +16,7 @@ describe('CreateTicket', () => {
     createdAt: 1785835769172,
   })
 
-  const TestTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     create: input =>
       Effect.sync(() => {
@@ -29,7 +29,7 @@ describe('CreateTicket', () => {
       }),
   })
 
-  layer(TestTicketRepository)('when the repository succeeds', it => {
+  layer(TicketRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('create: creates a Ticket through the repository', () =>
       Effect.gen(function* () {
         const result = yield* CreateTicket({
@@ -47,12 +47,12 @@ describe('CreateTicket', () => {
     cause: new Error('Repository unavailable'),
   })
 
-  const FailingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryFailed = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     create: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingTicketRepository)('when the repository fails', it => {
+  layer(TicketRepositoryFailed)('when the repository fails', it => {
     it.effect('create: preserves TicketRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* CreateTicket({

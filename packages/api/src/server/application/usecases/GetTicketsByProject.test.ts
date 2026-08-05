@@ -43,7 +43,7 @@ describe('GetTicketsByProject', () => {
     archivedAt: null,
   })
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getById: repositoryInput =>
       Effect.sync(() => {
@@ -53,7 +53,7 @@ describe('GetTicketsByProject', () => {
       }),
   })
 
-  const SucceedingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositorySucceeded = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     getByProject: repositoryInput =>
       Effect.sync(() => {
@@ -63,7 +63,7 @@ describe('GetTicketsByProject', () => {
       }),
   })
 
-  layer(Layer.mergeAll(SucceedingProjectRepository, SucceedingTicketRepository))(
+  layer(Layer.mergeAll(ProjectRepositorySucceeded, TicketRepositorySucceeded))(
     'when the repositories succeed',
     it => {
       it.effect('getByProject: returns Project Tickets from the repository', () =>
@@ -77,13 +77,13 @@ describe('GetTicketsByProject', () => {
   )
 
   const notFoundError = ProjectNotFoundError.make({ id: input.projectId })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getById: () => Effect.fail(notFoundError),
   })
 
   layer(
-    Layer.mergeAll(MissingProjectRepository, Layer.succeed(TicketRepository)(TicketRepositoryStub))
+    Layer.mergeAll(ProjectRepositoryMissing, Layer.succeed(TicketRepository)(TicketRepositoryStub))
   )('when the Project does not exist', it => {
     it.effect('getByProject: preserves ProjectNotFoundError', () =>
       Effect.gen(function* () {
@@ -98,13 +98,13 @@ describe('GetTicketsByProject', () => {
     operation: 'getById',
     cause: new Error('Project repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getById: () => Effect.fail(projectRepositoryError),
   })
 
   layer(
-    Layer.mergeAll(FailingProjectRepository, Layer.succeed(TicketRepository)(TicketRepositoryStub))
+    Layer.mergeAll(ProjectRepositoryFailed, Layer.succeed(TicketRepository)(TicketRepositoryStub))
   )('when the Project repository fails', it => {
     it.effect('getByProject: preserves ProjectRepositoryError', () =>
       Effect.gen(function* () {
@@ -119,12 +119,12 @@ describe('GetTicketsByProject', () => {
     operation: 'getByProject',
     cause: new Error('Repository unavailable'),
   })
-  const FailingTicketRepository = Layer.succeed(TicketRepository)({
+  const TicketRepositoryFailed = Layer.succeed(TicketRepository)({
     ...TicketRepositoryStub,
     getByProject: () => Effect.fail(repositoryError),
   })
 
-  layer(Layer.mergeAll(SucceedingProjectRepository, FailingTicketRepository))(
+  layer(Layer.mergeAll(ProjectRepositorySucceeded, TicketRepositoryFailed))(
     'when the Ticket repository fails',
     it => {
       it.effect('getByProject: preserves TicketRepositoryError', () =>

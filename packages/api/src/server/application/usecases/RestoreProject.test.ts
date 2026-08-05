@@ -21,7 +21,7 @@ describe('RestoreProject', () => {
 
   const input = { id: expectedProject.id }
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     restore: repositoryInput =>
       Effect.sync(() => {
@@ -31,7 +31,7 @@ describe('RestoreProject', () => {
       }),
   })
 
-  layer(SucceedingProjectRepository)('when the repository succeeds', it => {
+  layer(ProjectRepositorySucceeded)('when the repository succeeds', it => {
     it.effect('restore: returns the restored Project', () =>
       Effect.gen(function* () {
         const result = yield* RestoreProject(input)
@@ -42,12 +42,12 @@ describe('RestoreProject', () => {
   })
 
   const notFoundError = ProjectNotFoundError.make({ id: expectedProject.id })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     restore: () => Effect.fail(notFoundError),
   })
 
-  layer(MissingProjectRepository)('when the Project does not exist', it => {
+  layer(ProjectRepositoryMissing)('when the Project does not exist', it => {
     it.effect('restore: preserves ProjectNotFoundError', () =>
       Effect.gen(function* () {
         const error = yield* RestoreProject(input).pipe(Effect.flip)
@@ -61,12 +61,12 @@ describe('RestoreProject', () => {
     operation: 'restore',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     restore: () => Effect.fail(repositoryError),
   })
 
-  layer(FailingProjectRepository)('when the repository fails', it => {
+  layer(ProjectRepositoryFailed)('when the repository fails', it => {
     it.effect('restore: preserves ProjectRepositoryError', () =>
       Effect.gen(function* () {
         const error = yield* RestoreProject(input).pipe(Effect.flip)

@@ -29,13 +29,13 @@ describe('GetProjectDirectoriesProcedure', () => {
       context: { runPromise },
     })
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getDirectories: () => Effect.succeed(expectedDirectories),
   })
-  const TestTicketRepository = Layer.succeed(TicketRepository)(TicketRepositoryStub)
+  const TicketRepositoryUnused = Layer.succeed(TicketRepository)(TicketRepositoryStub)
   const SuccessRuntime = ManagedRuntime.make(
-    Layer.mergeAll(SucceedingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositorySucceeded, TicketRepositoryUnused)
   )
 
   describe('when the repository succeeds', () => {
@@ -47,12 +47,12 @@ describe('GetProjectDirectoriesProcedure', () => {
   })
 
   const notFoundError = ProjectNotFoundError.make({ id: input.id })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getDirectories: () => Effect.fail(notFoundError),
   })
   const MissingProjectRuntime = ManagedRuntime.make(
-    Layer.mergeAll(MissingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryMissing, TicketRepositoryUnused)
   )
 
   describe('when the Project does not exist', () => {
@@ -74,12 +74,12 @@ describe('GetProjectDirectoriesProcedure', () => {
     operation: 'getDirectories',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     getDirectories: () => Effect.fail(repositoryError),
   })
   const FailureRuntime = ManagedRuntime.make(
-    Layer.mergeAll(FailingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryFailed, TicketRepositoryUnused)
   )
 
   describe('when the repository fails', () => {

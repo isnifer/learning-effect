@@ -36,14 +36,14 @@ describe('CreateProjectProcedure', () => {
       }
     )
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     create: () => Effect.succeed(expectedProject),
   })
-  const TestTicketRepository = Layer.succeed(TicketRepository)(TicketRepositoryStub)
+  const TicketRepositoryUnused = Layer.succeed(TicketRepository)(TicketRepositoryStub)
 
   const SuccessRuntime = ManagedRuntime.make(
-    Layer.mergeAll(SucceedingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositorySucceeded, TicketRepositoryUnused)
   )
 
   describe('when the repository succeeds', () => {
@@ -57,12 +57,12 @@ describe('CreateProjectProcedure', () => {
   const projectKeyAlreadyExistsError = ProjectKeyAlreadyExistsError.make({
     key: expectedProject.key,
   })
-  const ConflictingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryConflicting = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     create: () => Effect.fail(projectKeyAlreadyExistsError),
   })
   const ConflictRuntime = ManagedRuntime.make(
-    Layer.mergeAll(ConflictingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryConflicting, TicketRepositoryUnused)
   )
 
   describe('when the Project key is already reserved', () => {
@@ -82,12 +82,12 @@ describe('CreateProjectProcedure', () => {
     operation: 'create',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     create: () => Effect.fail(repositoryError),
   })
   const FailureRuntime = ManagedRuntime.make(
-    Layer.mergeAll(FailingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryFailed, TicketRepositoryUnused)
   )
 
   describe('when the repository fails', () => {

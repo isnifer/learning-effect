@@ -31,13 +31,13 @@ describe('LinkProjectDirectoryProcedure', () => {
       context: { runPromise },
     })
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: () => Effect.succeed(input),
   })
-  const TestTicketRepository = Layer.succeed(TicketRepository)(TicketRepositoryStub)
+  const TicketRepositoryUnused = Layer.succeed(TicketRepository)(TicketRepositoryStub)
   const SuccessRuntime = ManagedRuntime.make(
-    Layer.mergeAll(SucceedingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositorySucceeded, TicketRepositoryUnused)
   )
 
   it('linkDirectory: returns the linked Project directory when the repository succeeds', async () => {
@@ -70,12 +70,12 @@ describe('LinkProjectDirectoryProcedure', () => {
   })
 
   const notFoundError = ProjectNotFoundError.make({ id: input.projectId })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: () => Effect.fail(notFoundError),
   })
   const MissingProjectRuntime = ManagedRuntime.make(
-    Layer.mergeAll(MissingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryMissing, TicketRepositoryUnused)
   )
 
   it('linkDirectory: maps ProjectNotFoundError to NOT_FOUND', async () => {
@@ -92,12 +92,12 @@ describe('LinkProjectDirectoryProcedure', () => {
   })
 
   const archivedError = ProjectArchivedError.make({ id: input.projectId })
-  const ArchivedProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryArchived = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: () => Effect.fail(archivedError),
   })
   const ArchivedProjectRuntime = ManagedRuntime.make(
-    Layer.mergeAll(ArchivedProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryArchived, TicketRepositoryUnused)
   )
 
   it('linkDirectory: maps ProjectArchivedError to CONFLICT', async () => {
@@ -117,12 +117,12 @@ describe('LinkProjectDirectoryProcedure', () => {
     operation: 'linkDirectory',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     linkDirectory: () => Effect.fail(repositoryError),
   })
   const FailureRuntime = ManagedRuntime.make(
-    Layer.mergeAll(FailingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryFailed, TicketRepositoryUnused)
   )
 
   it('linkDirectory: maps ProjectRepositoryError to INTERNAL_SERVER_ERROR', async () => {

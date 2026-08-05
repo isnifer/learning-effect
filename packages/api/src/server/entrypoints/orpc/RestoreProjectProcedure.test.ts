@@ -31,13 +31,13 @@ describe('RestoreProjectProcedure', () => {
       context: { runPromise },
     })
 
-  const SucceedingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositorySucceeded = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     restore: () => Effect.succeed(expectedProject),
   })
-  const TestTicketRepository = Layer.succeed(TicketRepository)(TicketRepositoryStub)
+  const TicketRepositoryUnused = Layer.succeed(TicketRepository)(TicketRepositoryStub)
   const SuccessRuntime = ManagedRuntime.make(
-    Layer.mergeAll(SucceedingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositorySucceeded, TicketRepositoryUnused)
   )
 
   it('restore: returns the restored Project when the repository succeeds', async () => {
@@ -47,12 +47,12 @@ describe('RestoreProjectProcedure', () => {
   })
 
   const notFoundError = ProjectNotFoundError.make({ id: expectedProject.id })
-  const MissingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryMissing = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     restore: () => Effect.fail(notFoundError),
   })
   const MissingProjectRuntime = ManagedRuntime.make(
-    Layer.mergeAll(MissingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryMissing, TicketRepositoryUnused)
   )
 
   it('restore: maps ProjectNotFoundError to NOT_FOUND', async () => {
@@ -70,12 +70,12 @@ describe('RestoreProjectProcedure', () => {
     operation: 'restore',
     cause: new Error('Repository unavailable'),
   })
-  const FailingProjectRepository = Layer.succeed(ProjectRepository)({
+  const ProjectRepositoryFailed = Layer.succeed(ProjectRepository)({
     ...ProjectRepositoryStub,
     restore: () => Effect.fail(repositoryError),
   })
   const FailureRuntime = ManagedRuntime.make(
-    Layer.mergeAll(FailingProjectRepository, TestTicketRepository)
+    Layer.mergeAll(ProjectRepositoryFailed, TicketRepositoryUnused)
   )
 
   it('restore: maps ProjectRepositoryError to INTERNAL_SERVER_ERROR', async () => {
