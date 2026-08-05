@@ -23,6 +23,9 @@ export type TTicket = typeof Ticket.Type
 export const CreateTicketInput = Ticket.mapFields(Struct.pick(['projectId', 'title']))
 export type TCreateTicketInput = typeof CreateTicketInput.Type
 
+export const GetTicketsByProjectInput = Ticket.mapFields(Struct.pick(['projectId']))
+export type TGetTicketsByProjectInput = typeof GetTicketsByProjectInput.Type
+
 export const UpdateTicketStatusInput = Ticket.mapFields(Struct.pick(['id', 'status']))
 export type TUpdateTicketStatusInput = typeof UpdateTicketStatusInput.Type
 

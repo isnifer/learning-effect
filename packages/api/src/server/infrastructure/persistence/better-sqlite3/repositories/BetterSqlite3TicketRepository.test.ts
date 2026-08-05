@@ -14,7 +14,7 @@ import TicketRepository, {
   TicketRepositoryError,
 } from '#/server/application/repositories/TicketRepository'
 import { ProjectId, ProjectKey, ProjectName } from '#/shared/contracts/Project'
-import { TicketId, TicketTitle } from '#/shared/contracts/Ticket'
+import { GetTicketsByProjectInput, TicketId, TicketTitle } from '#/shared/contracts/Ticket'
 import * as schema from '../../sqlite/schema'
 import BetterSqlite3Client from '../client/BetterSqlite3Client'
 import BetterSqlite3ProjectRepository from './BetterSqlite3ProjectRepository'
@@ -123,6 +123,110 @@ describe('BetterSqlite3TicketRepository', () => {
 
         expect(newerInProgress.id > olderInProgress.id).toBe(true)
         expect(tickets).toStrictEqual([newerInProgress, olderInProgress, ticket, completed])
+      })
+    )
+
+    it.effect('getByProject: returns only Project Tickets in workflow order', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const ticketRepository = yield* TicketRepository
+        const firstProjectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const firstProjectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const secondProjectName = yield* Schema.decodeEffect(ProjectName)('Other Project')
+        const secondProjectKey = yield* Schema.decodeEffect(ProjectKey)('OTHER')
+        const firstProject = yield* projectRepository.create({
+          name: firstProjectName,
+          key: firstProjectKey,
+        })
+        const secondProject = yield* projectRepository.create({
+          name: secondProjectName,
+          key: secondProjectKey,
+        })
+        const olderInProgressTitle = yield* Schema.decodeEffect(TicketTitle)('Older In Progress')
+        const ticketTitle = yield* Schema.decodeEffect(TicketTitle)('Ticket')
+        const newerInProgressTitle = yield* Schema.decodeEffect(TicketTitle)('Newer In Progress')
+        const completedTitle = yield* Schema.decodeEffect(TicketTitle)('Completed')
+        const otherProjectTitle = yield* Schema.decodeEffect(TicketTitle)('Other Project Ticket')
+
+        const olderInProgressTicket = yield* ticketRepository.create({
+          projectId: firstProject.id,
+          title: olderInProgressTitle,
+        })
+        const olderInProgress = yield* ticketRepository.updateStatus({
+          id: olderInProgressTicket.id,
+          status: 'IN_PROGRESS',
+        })
+        yield* TestClock.adjust('1 millis')
+        const ticket = yield* ticketRepository.create({
+          projectId: firstProject.id,
+          title: ticketTitle,
+        })
+        yield* TestClock.adjust('1 millis')
+        const newerInProgressTicket = yield* ticketRepository.create({
+          projectId: firstProject.id,
+          title: newerInProgressTitle,
+        })
+        const newerInProgress = yield* ticketRepository.updateStatus({
+          id: newerInProgressTicket.id,
+          status: 'IN_PROGRESS',
+        })
+        yield* TestClock.adjust('1 millis')
+        const completedTicket = yield* ticketRepository.create({
+          projectId: firstProject.id,
+          title: completedTitle,
+        })
+        const completed = yield* ticketRepository.updateStatus({
+          id: completedTicket.id,
+          status: 'COMPLETED',
+        })
+        yield* ticketRepository.create({
+          projectId: secondProject.id,
+          title: otherProjectTitle,
+        })
+        const input = yield* Schema.decodeEffect(GetTicketsByProjectInput)({
+          projectId: firstProject.id,
+        })
+
+        const projectTickets = yield* ticketRepository.getByProject(input)
+
+        expect(projectTickets).toStrictEqual([newerInProgress, olderInProgress, ticket, completed])
+      })
+    )
+
+    it.effect('getByProject: returns an empty array when the Project has no Tickets', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const ticketRepository = yield* TicketRepository
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const input = yield* Schema.decodeEffect(GetTicketsByProjectInput)({
+          projectId: project.id,
+        })
+
+        const projectTickets = yield* ticketRepository.getByProject(input)
+
+        expect(projectTickets).toStrictEqual([])
+      })
+    )
+
+    it.effect('getByProject: returns Tickets for an archived Project', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const ticketRepository = yield* TicketRepository
+        const projectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const projectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const project = yield* projectRepository.create({ name: projectName, key: projectKey })
+        const title = yield* Schema.decodeEffect(TicketTitle)('Archived Project Ticket')
+        const ticket = yield* ticketRepository.create({ projectId: project.id, title })
+        yield* projectRepository.archive({ id: project.id })
+        const input = yield* Schema.decodeEffect(GetTicketsByProjectInput)({
+          projectId: project.id,
+        })
+
+        const projectTickets = yield* ticketRepository.getByProject(input)
+
+        expect(projectTickets).toStrictEqual([ticket])
       })
     )
 

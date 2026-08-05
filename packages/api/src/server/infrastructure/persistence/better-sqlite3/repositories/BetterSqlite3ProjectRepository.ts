@@ -77,6 +77,32 @@ const BetterSqlite3ProjectRepository = Layer.effect(ProjectRepository)(
           })
         )
       ),
+      getById: input =>
+        Effect.gen(function* () {
+          const projectItem = yield* Effect.try(() =>
+            db.select().from(projects).where(eq(projects.id, input.id)).get()
+          ).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'getById',
+                cause,
+              })
+            )
+          )
+
+          if (!projectItem) {
+            return yield* ProjectNotFoundError.make({ id: input.id })
+          }
+
+          return yield* Schema.decodeEffect(Project)(projectItem).pipe(
+            Effect.mapError(cause =>
+              ProjectRepositoryError.make({
+                operation: 'getById',
+                cause,
+              })
+            )
+          )
+        }),
       archive: input =>
         Effect.gen(function* () {
           const archivedAt = yield* Clock.currentTimeMillis
