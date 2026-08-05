@@ -5,6 +5,7 @@ import viteReact from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 const config = defineConfig({
+  base: '/',
   resolve: {
     alias: {
       '#': fileURLToPath(new URL('./src', import.meta.url)),

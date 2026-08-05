@@ -31,6 +31,7 @@ test('create: creates and selects a Project after choosing a directory', async (
   await expect(window.getByTestId(e2eTestIds.project.selector)).toContainText(
     'E2E — Playwright Project'
   )
+  await expect(window).toHaveURL(/\/projects\/[0-9a-f-]+\/tickets$/)
 })
 
 test('create: clears a previous repository error when the dialog reopens', async ({

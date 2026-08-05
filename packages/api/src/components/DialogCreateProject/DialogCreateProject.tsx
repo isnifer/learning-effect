@@ -1,5 +1,4 @@
-import { useContext, type ReactNode } from 'react'
-import { OverlayTriggerStateContext } from 'react-aria-components'
+import { useState, type ReactNode } from 'react'
 import FormCreateProject from '#/components/FormCreateProject'
 import {
   Dialog,
@@ -14,35 +13,37 @@ import { e2eTestIds } from '#/testing/e2eTestIds'
 
 interface DialogCreateProjectProps {
   trigger: ReactNode
-  onCreated?: (project: TProject) => void
+  onCreated: (project: TProject) => void
 }
 
 export default function DialogCreateProject({ trigger, onCreated }: DialogCreateProjectProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const close = () => setIsOpen(false)
+
   return (
-    <DialogTrigger>
+    <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
       {trigger}
       <Dialog className="sm:max-w-md" data-testid={e2eTestIds.project.create.dialog}>
-        <DialogCreateProjectContent onCreated={onCreated} />
+        <DialogCreateProjectContent onCreated={onCreated} onClose={close} />
       </Dialog>
     </DialogTrigger>
   )
 }
 
 interface DialogCreateProjectContentProps {
-  onCreated?: (project: TProject) => void
+  onCreated: (project: TProject) => void
+  onClose: () => void
 }
 
-function DialogCreateProjectContent({ onCreated }: DialogCreateProjectContentProps) {
-  const dialogState = useContext(OverlayTriggerStateContext)
+function DialogCreateProjectContent({ onCreated, onClose }: DialogCreateProjectContentProps) {
   const createProject = useCreateProject()
-
-  const close = () => dialogState?.close()
 
   const create = async (input: TCreateProjectInput) => {
     const project = await createProject.mutateAsync(input)
 
-    close()
-    onCreated?.(project)
+    onClose()
+    onCreated(project)
   }
 
   return (
@@ -54,7 +55,7 @@ function DialogCreateProjectContent({ onCreated }: DialogCreateProjectContentPro
       <FormCreateProject
         isPending={createProject.isPending}
         error={createProject.error}
-        onCancel={close}
+        onCancel={onClose}
         onCreate={create}
       />
     </>
