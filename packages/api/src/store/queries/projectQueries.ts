@@ -1,8 +1,17 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { orpc } from '#/lib/orpc'
+import type { TProject } from '#/shared/contracts/Project'
 
 export const useActiveProjectsQuery = () =>
   useQuery(orpc.project.getActive.queryOptions({ refetchOnWindowFocus: true }))
+
+export const useProjectDirectoriesQuery = (projectId: TProject['id']) =>
+  useQuery(
+    orpc.project.getDirectories.queryOptions({
+      input: { id: projectId },
+      refetchOnWindowFocus: true,
+    })
+  )
 
 export const useCreateProject = () =>
   useMutation(

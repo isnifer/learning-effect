@@ -2,6 +2,11 @@ export const e2eTestIds = {
   project: {
     empty: 'project.empty',
     selector: 'project.selector',
+    directories: {
+      trigger: 'project.directories.trigger',
+      dialog: 'project.directories.dialog',
+      list: 'project.directories.list',
+    },
     create: {
       emptyTrigger: 'project.create.empty-trigger',
       workspaceTrigger: 'project.create.workspace-trigger',

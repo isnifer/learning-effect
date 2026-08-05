@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import * as Schema from 'effect/Schema'
-import { ListTodoIcon, PlusIcon } from 'lucide-react'
+import { FolderIcon, ListTodoIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import DialogCreateProject from '#/components/DialogCreateProject'
+import DialogProjectDirectories from '#/components/DialogProjectDirectories'
 import Empty from '#/components/Empty'
 import FormCreateTicket from '#/components/FormCreateTicket'
 import FormUpdateTicketTitle from '#/components/FormUpdateTicketTitle'
@@ -144,6 +145,15 @@ function TicketWorkspace({ projects, initialProject }: TicketWorkspaceProps) {
             options={projectOptions}
             triggerClassName="w-full sm:w-64"
             onChange={selectProject}
+          />
+          <DialogProjectDirectories
+            project={selectedProject}
+            trigger={
+              <Button variant="outline" data-testid={e2eTestIds.project.directories.trigger}>
+                <FolderIcon data-icon="inline-start" />
+                Directories
+              </Button>
+            }
           />
           <DialogCreateProject
             trigger={
