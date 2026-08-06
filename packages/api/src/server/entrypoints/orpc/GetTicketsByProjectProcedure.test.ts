@@ -27,6 +27,7 @@ describe('GetTicketsByProjectProcedure', () => {
     {
       id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
       projectId: input.projectId,
+      number: 1,
       title: 'First Ticket',
       status: 'TODO',
       createdAt: 1785835769172,
@@ -34,6 +35,7 @@ describe('GetTicketsByProjectProcedure', () => {
     {
       id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2b',
       projectId: input.projectId,
+      number: 2,
       title: 'Second Ticket',
       status: 'COMPLETED',
       createdAt: 1785835769173,

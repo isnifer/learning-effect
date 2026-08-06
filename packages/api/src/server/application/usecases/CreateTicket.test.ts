@@ -20,6 +20,7 @@ describe('CreateTicket', () => {
   const expectedTicket = Schema.decodeUnknownSync(Ticket)({
     id: '019fcc1a-bd5d-751e-9a30-0bc92d133b2a',
     projectId: '019fcc1a-bd5d-751e-9a30-0bc92d133b29',
+    number: 1,
     title: 'Test Ticket',
     status: 'TODO',
     createdAt: 1785835769172,

@@ -4,6 +4,11 @@ import { ProjectId } from './Project'
 
 export const TicketId = Schema.String.pipe(Schema.check(Schema.isUUID(7)), Schema.brand('TicketId'))
 
+export const TicketNumber = Schema.Int.pipe(
+  Schema.check(Schema.isGreaterThan(0)),
+  Schema.brand('TicketNumber')
+)
+
 export const TicketTitle = Schema.Trim.pipe(
   Schema.check(Schema.isNonEmpty()),
   Schema.brand('TicketTitle')
@@ -14,6 +19,7 @@ export const TicketStatus = Schema.Literals(['TODO', 'IN_PROGRESS', 'COMPLETED']
 const Ticket = Schema.Struct({
   id: TicketId,
   projectId: ProjectId,
+  number: TicketNumber,
   title: TicketTitle,
   status: TicketStatus,
   createdAt: Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))),

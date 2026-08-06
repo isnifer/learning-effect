@@ -41,17 +41,30 @@ const BetterSqlite3TicketRepository = Layer.effect(TicketRepository)(
           const createdAt = yield* Clock.currentTimeMillis
 
           const ticketItem = yield* Effect.try(() =>
-            db
-              .insert(tickets)
-              .values({
-                id,
-                projectId: input.projectId,
-                title: input.title,
-                status: 'TODO',
-                createdAt,
-              })
-              .returning()
-              .get()
+            db.transaction(
+              transaction => {
+                const latestTicketItem = transaction
+                  .select({ number: tickets.number })
+                  .from(tickets)
+                  .where(eq(tickets.projectId, input.projectId))
+                  .orderBy(desc(tickets.number))
+                  .get()
+
+                return transaction
+                  .insert(tickets)
+                  .values({
+                    id,
+                    projectId: input.projectId,
+                    number: latestTicketItem ? latestTicketItem.number + 1 : 1,
+                    title: input.title,
+                    status: 'TODO',
+                    createdAt,
+                  })
+                  .returning()
+                  .get()
+              },
+              { behavior: 'immediate' }
+            )
           )
 
           return yield* Schema.decodeEffect(Ticket)(ticketItem)

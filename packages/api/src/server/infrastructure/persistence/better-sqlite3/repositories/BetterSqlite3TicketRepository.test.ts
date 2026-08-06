@@ -62,7 +62,48 @@ describe('BetterSqlite3TicketRepository', () => {
         })
 
         expect(createdTicket.projectId).toBe(project.id)
+        expect(createdTicket.number).toBe(1)
         expect(createdTicket.title).toEqual('Test')
+      })
+    )
+
+    it.effect('create: assigns sequential Ticket numbers within each Project', () =>
+      Effect.gen(function* () {
+        const projectRepository = yield* ProjectRepository
+        const ticketRepository = yield* TicketRepository
+        const firstProjectName = yield* Schema.decodeEffect(ProjectName)('Red Docket')
+        const firstProjectKey = yield* Schema.decodeEffect(ProjectKey)('RD')
+        const secondProjectName = yield* Schema.decodeEffect(ProjectName)('Other Project')
+        const secondProjectKey = yield* Schema.decodeEffect(ProjectKey)('OTHER')
+        const firstProject = yield* projectRepository.create({
+          name: firstProjectName,
+          key: firstProjectKey,
+        })
+        const secondProject = yield* projectRepository.create({
+          name: secondProjectName,
+          key: secondProjectKey,
+        })
+        const firstTicketTitle = yield* Schema.decodeEffect(TicketTitle)('First Ticket')
+        const secondTicketTitle = yield* Schema.decodeEffect(TicketTitle)('Second Ticket')
+        const otherProjectTicketTitle =
+          yield* Schema.decodeEffect(TicketTitle)('Other Project Ticket')
+
+        const firstTicket = yield* ticketRepository.create({
+          projectId: firstProject.id,
+          title: firstTicketTitle,
+        })
+        const secondTicket = yield* ticketRepository.create({
+          projectId: firstProject.id,
+          title: secondTicketTitle,
+        })
+        const otherProjectTicket = yield* ticketRepository.create({
+          projectId: secondProject.id,
+          title: otherProjectTicketTitle,
+        })
+
+        expect(firstTicket.number).toBe(1)
+        expect(secondTicket.number).toBe(2)
+        expect(otherProjectTicket.number).toBe(1)
       })
     )
 

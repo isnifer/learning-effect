@@ -36,6 +36,13 @@
       "when": 1785940473945,
       "tag": "0004_prevent_archived_project_ticket_creation",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1785975891785,
+      "tag": "0005_brief_blizzard",
+      "breakpoints": true
     }
   ]
 }

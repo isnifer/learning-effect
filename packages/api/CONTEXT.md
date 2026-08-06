@@ -42,9 +42,15 @@ Project directories, and the same path may be linked to several Projects.
 _Avoid_: Directory entity, home directory
 
 **Ticket**:
-A unit of work tracked within exactly one Project. A Ticket has its own identity, title, and status
-and cannot exist without its Project.
+A unit of work tracked within exactly one Project. A Ticket has its own identity, Project-local
+number, title, and status and cannot exist without its Project.
 _Avoid_: Todo, Task, issue
+
+**Ticket number**:
+An immutable positive integer assigned sequentially within one Project. Ticket numbers start at
+`1` for every Project. The human-readable Ticket reference combines the Project key and Ticket
+number, such as `RD-3`; the reference itself is derived and is not stored.
+_Avoid_: Global Ticket number, stored Ticket reference
 
 **Ticket status**:
 The current stage of a Ticket: `TODO`, `IN_PROGRESS`, or `COMPLETED`.
