@@ -1,6 +1,6 @@
 import * as Schema from 'effect/Schema'
 import * as Struct from 'effect/Struct'
-import { ProjectId } from './Project'
+import { ProjectId, type TProject } from './Project'
 
 export const TicketId = Schema.String.pipe(Schema.check(Schema.isUUID(7)), Schema.brand('TicketId'))
 
@@ -25,6 +25,11 @@ const Ticket = Schema.Struct({
   createdAt: Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))),
 })
 export type TTicket = typeof Ticket.Type
+
+export const getTicketReference = (
+  projectKey: TProject['key'],
+  ticketNumber: TTicket['number']
+): string => `${projectKey}-${ticketNumber}`
 
 export const CreateTicketInput = Ticket.mapFields(Struct.pick(['projectId', 'title']))
 export type TCreateTicketInput = typeof CreateTicketInput.Type

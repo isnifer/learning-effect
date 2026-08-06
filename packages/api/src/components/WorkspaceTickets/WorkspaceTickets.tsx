@@ -80,6 +80,7 @@ export default function WorkspaceTickets({
             <TabsContent id={filter}>
               <ListTickets
                 projectId={project.id}
+                projectKey={project.key}
                 tickets={tickets}
                 visibleTickets={visibleTickets}
                 isPending={ticketsQuery.isPending}

@@ -6,6 +6,7 @@ import { Button } from '#/components/ui/button'
 import { Field, FieldError, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import { CreateTicketInput } from '#/shared/contracts/Ticket'
+import { e2eTestIds } from '#/testing/e2eTestIds'
 
 const FormCreateTicketInput = CreateTicketInput.mapFields(Struct.pick(['title']))
 type TFormCreateTicketInput = typeof FormCreateTicketInput.Type
@@ -40,12 +41,16 @@ export default function FormCreateTicket({ isPending, error, onCreate }: FormCre
           <Input
             {...register('title')}
             id="ticket-title"
+            data-testid={e2eTestIds.ticket.create.title}
             placeholder="What needs to be done?"
             autoComplete="off"
             aria-invalid={!!errors.title}
             disabled={isPending}
           />
-          <Button type="submit" isDisabled={isPending}>
+          <Button
+            type="submit"
+            data-testid={e2eTestIds.ticket.create.submit}
+            isDisabled={isPending}>
             {isPending ? 'Adding…' : 'Add ticket'}
           </Button>
         </div>

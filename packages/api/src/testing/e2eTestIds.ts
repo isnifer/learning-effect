@@ -1,4 +1,11 @@
 export const e2eTestIds = {
+  ticket: {
+    reference: 'ticket.reference',
+    create: {
+      title: 'ticket.create.title',
+      submit: 'ticket.create.submit',
+    },
+  },
   project: {
     empty: 'project.empty',
     selector: 'project.selector',

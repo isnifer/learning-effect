@@ -15,6 +15,7 @@ import {
 
 interface FormUpdateTicketTitleProps {
   ticket: TTicket
+  ticketReference: string
   isPending: boolean
   error: Error | null
   onUpdate: (input: TUpdateTicketTitleInput) => Promise<unknown>
@@ -22,6 +23,7 @@ interface FormUpdateTicketTitleProps {
 
 export default function FormUpdateTicketTitle({
   ticket,
+  ticketReference,
   isPending,
   error,
   onUpdate,
@@ -64,7 +66,7 @@ export default function FormUpdateTicketTitle({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label={`Edit title for ${ticket.title}`}
+          aria-label={`Edit title for ${ticketReference}: ${ticket.title}`}
           onPress={() => {
             reset({ id: ticket.id, title: ticket.title })
             setHasSubmitted(false)
@@ -80,7 +82,7 @@ export default function FormUpdateTicketTitle({
     <form className="w-full" onSubmit={onSubmit}>
       <Field data-invalid={!!errors.title || (hasSubmitted && !!error)}>
         <FieldLabel htmlFor={`ticket-title-${ticket.id}`} className="sr-only">
-          Edit title for {ticket.title}
+          Edit title for {ticketReference}: {ticket.title}
         </FieldLabel>
         <Input
           {...register('title')}
